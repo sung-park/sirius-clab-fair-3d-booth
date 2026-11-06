@@ -1,0 +1,330 @@
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { SPEC, SAMPLE_DX } from './layout.js';
+
+function rounded(w, h, d, radius = 0.004, segments = 3) {
+  const limit = Math.min(w, h, d) / 2 - 0.0005;
+  return new RoundedBoxGeometry(w, h, d, segments, Math.max(0.001, Math.min(radius, limit)));
+}
+
+export function createBooth(cfg, layout, mats, tex) {
+  const root = new THREE.Group();
+  root.name = 'booth';
+  root.userData.layout = layout;
+  root.userData.textures = tex;
+
+  function add(geometry, material, x, y, z, opt = {}) {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, z);
+    if (opt.rot) mesh.rotation.set(opt.rot[0], opt.rot[1], opt.rot[2]);
+    mesh.castShadow = opt.cast !== false;
+    mesh.receiveShadow = opt.receive !== false;
+    if (opt.name) mesh.name = opt.name;
+    if (opt.disposeMat) mesh.userData.disposeMat = opt.disposeMat;
+    (opt.parent || root).add(mesh);
+    return mesh;
+  }
+
+  buildSpine(add, layout, mats);
+  buildCabinet(add, cfg, layout, mats, tex);
+  buildSeams(add, layout, mats);
+  root.add(buildHeader(add, layout, mats, tex));
+  if (layout.tv) root.add(buildScreen(add, layout.tv, mats, tex.tv));
+  buildPrints(add, layout, mats, tex);
+  if (layout.tray) buildTray(add, layout.tray, mats);
+  if (layout.totem) root.add(buildTotem(add, layout.totem, mats, tex));
+  root.add(buildPerson(add, cfg, layout, mats));
+  root.add(buildFootprint(layout, mats));
+  return root;
+}
+
+function buildSpine(add, layout, mats) {
+  const wall = layout.wall;
+  add(rounded(wall.w, wall.h, wall.d, 0.006, 4), mats.body, wall.x, wall.y, wall.z, { name: 'spine' });
+}
+
+function buildCabinet(add, cfg, layout, mats, tex) {
+  const cab = layout.cabinet;
+  const thickness = 0.016;
+  const kickH = 0.072;
+  const slabT = 0.022;
+  const z0 = cab.backZ;
+  const z1 = cab.frontZ - 0.006;
+  const depth = Math.max(0.05, z1 - z0);
+  const z = (z0 + z1) / 2;
+  const sideH = cab.topY - slabT - 0.004;
+
+  for (const sign of [-1, 1]) {
+    add(
+      rounded(thickness, sideH, depth, 0.002, 2),
+      mats.end,
+      sign * (cab.w / 2 - thickness / 2),
+      sideH / 2,
+      z,
+    );
+  }
+
+  add(
+    rounded(cab.w - thickness * 2, 0.014, Math.max(0.05, depth - 0.02), 0.002, 2),
+    mats.shelf,
+    0,
+    kickH + 0.008,
+    z + 0.004,
+    { cast: false },
+  );
+
+  add(
+    new THREE.BoxGeometry(cab.w - thickness * 2 - 0.01, Math.max(0.1, sideH - kickH - 0.04), 0.01),
+    layout.flush ? mats.body : mats.interior,
+    0,
+    kickH + (sideH - kickH) / 2,
+    layout.flush ? layout.zBack + 0.008 : cab.backZ + 0.01,
+    { cast: false },
+  );
+
+  add(
+    rounded(cab.w - 0.04, kickH, 0.06, 0.002, 2),
+    mats.kick,
+    0,
+    kickH / 2,
+    z1 - 0.04,
+  );
+
+  const slabBack = cab.backZ - (layout.flush ? 0 : 0.004);
+  const slabFront = cab.frontZ + 0.012;
+  const slabD = slabFront - slabBack;
+  add(
+    rounded(cab.w + 0.01, slabT, slabD, 0.003, 4),
+    mats.counter,
+    0,
+    cab.topY - slabT / 2,
+    slabBack + slabD / 2,
+    { name: 'counter' },
+  );
+
+  if (cfg.cabinet === 'open') {
+    add(
+      rounded(cab.w - thickness * 2 - 0.04, 0.012, depth * 0.7, 0.002, 2),
+      mats.shelf,
+      0,
+      0.46,
+      z + 0.02,
+    );
+    addBooklets(add, mats, -0.62, 0.478, z);
+    addBooklets(add, mats, 0.02, 0.478, z - 0.02);
+    addBooklets(add, mats, 0.58, 0.478, z + 0.03);
+    return;
+  }
+
+  const gap = 0.01;
+  const doorW = (cab.w - gap * 4) / 3;
+  const doorH = cab.topY - slabT - kickH - 0.016;
+  const doorY = kickH + doorH / 2;
+  const doorZ = cab.frontZ - 0.014;
+  for (let index = 0; index < 3; index += 1) {
+    const x = -cab.w / 2 + gap + doorW / 2 + index * (doorW + gap);
+    const logo = cfg.cabinet === 'logo' && index === 1 && tex.door;
+    let material = mats.door;
+    let disposeMat = null;
+    if (logo) {
+      material = mats.door.clone();
+      material.color.set('#ffffff');
+      material.map = tex.door;
+      material.roughness = 0.62;
+      disposeMat = material;
+    }
+    add(rounded(doorW, doorH, 0.016, 0.003, 2), material, x, doorY, doorZ, { disposeMat });
+    add(
+      new THREE.BoxGeometry(0.008, 0.1, 0.008),
+      mats.metal,
+      x + doorW * 0.34,
+      doorY + doorH * 0.22,
+      doorZ + 0.012,
+    );
+  }
+}
+
+function addBooklets(add, mats, x, y, z) {
+  for (let index = 0; index < 4; index += 1) {
+    const yy = y + 0.008 + index * 0.014;
+    add(new THREE.BoxGeometry(0.2, 0.012, 0.14), mats.paper, x, yy, z);
+    add(new THREE.BoxGeometry(0.008, 0.012, 0.14), mats.spine, x - 0.096, yy, z, { cast: false });
+  }
+}
+
+function buildSeams(add, layout, mats) {
+  const y0 = SPEC.shelfH;
+  const y1 = SPEC.height - SPEC.headerH;
+  for (const x of layout.seams) {
+    add(
+      new THREE.BoxGeometry(0.007, y1 - y0, 0.004),
+      mats.kick,
+      x,
+      (y0 + y1) / 2,
+      layout.faceZ + 0.003,
+      { cast: false, receive: false },
+    );
+  }
+}
+
+function buildHeader(add, layout, mats, tex) {
+  const group = new THREE.Group();
+  group.name = 'header';
+  const header = layout.header;
+  add(
+    new THREE.BoxGeometry(header.w, header.h, 0.012),
+    mats.bezel,
+    header.x,
+    header.y,
+    header.z + 0.006,
+    { parent: group },
+  );
+  if (tex.header) {
+    const material = new THREE.MeshBasicMaterial({ map: tex.header });
+    add(
+      new THREE.PlaneGeometry(header.w - 0.004, header.h - 0.004),
+      material,
+      header.x,
+      header.y,
+      header.z + 0.013,
+      { parent: group, cast: false, disposeMat: material },
+    );
+  }
+  return group;
+}
+
+function buildScreen(add, block, mats, map) {
+  const group = new THREE.Group();
+  const centerZ = block.z + block.d / 2;
+  add(rounded(block.w, block.h, block.d, 0.004, 3), mats.bezel, block.x, block.y, centerZ, { parent: group });
+  if (map) {
+    const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
+    add(
+      new THREE.PlaneGeometry(block.screenW, block.screenH),
+      material,
+      block.x,
+      block.y,
+      block.z + block.d + 0.001,
+      { parent: group, cast: false, disposeMat: material },
+    );
+    add(
+      new THREE.PlaneGeometry(block.screenW, block.screenH),
+      mats.glass,
+      block.x,
+      block.y,
+      block.z + block.d + 0.004,
+      { parent: group, cast: false, receive: false },
+    );
+  }
+  return group;
+}
+
+function buildPrints(add, layout, mats, tex) {
+  const panels = [];
+  if (layout.column) panels.push(...Object.values(layout.column.panels));
+  if (layout.wings) panels.push(...Object.values(layout.wings));
+  if (layout.posters) panels.push(...layout.posters);
+  for (const panel of panels) {
+    const map = tex[panel.key];
+    if (!map) continue;
+    add(
+      rounded(panel.w + 0.016, panel.h + 0.016, 0.016, 0.002, 2),
+      mats.bezel,
+      panel.x,
+      panel.y,
+      panel.z + 0.009,
+    );
+    const material = new THREE.MeshBasicMaterial({ map });
+    add(
+      new THREE.PlaneGeometry(panel.w, panel.h),
+      material,
+      panel.x,
+      panel.y,
+      panel.z + 0.018,
+      { cast: false, disposeMat: material },
+    );
+  }
+}
+
+function buildTray(add, tray, mats) {
+  add(rounded(tray.w, tray.h, tray.d, 0.002, 2), mats.tray, tray.x, tray.y + tray.h / 2, tray.z, { name: 'tray' });
+  const y = tray.y + tray.h;
+  addWearable(add, mats, tray.x + SAMPLE_DX[0], y, tray.z, false);
+  addWearable(add, mats, tray.x + SAMPLE_DX[1], y, tray.z, true);
+}
+
+function addWearable(add, mats, x, y, z, alt) {
+  const puckR = alt ? 0.046 : 0.028;
+  const puckH = alt ? 0.022 : 0.012;
+  const bandR = alt ? 0.09 : 0.068;
+  const tube = alt ? 0.01 : 0.006;
+  add(
+    new THREE.TorusGeometry(bandR, tube, 12, 28, Math.PI * 1.2),
+    alt ? mats.bandAlt : mats.band,
+    x,
+    y + tube,
+    z,
+    { rot: [Math.PI / 2, 0, 0.5] },
+  );
+  add(
+    new THREE.CylinderGeometry(puckR, puckR * 0.96, puckH, 28),
+    alt ? mats.deviceAlt : mats.device,
+    x,
+    y + tube * 2 + puckH / 2 + 0.002,
+    z,
+  );
+  add(
+    new THREE.SphereGeometry(0.0045, 12, 8),
+    alt ? mats.ledOff : mats.led,
+    x,
+    y + tube * 2 + puckH + 0.006,
+    z + puckR * 0.25,
+    { cast: false },
+  );
+}
+
+function buildTotem(add, totem, mats, tex) {
+  const group = new THREE.Group();
+  group.name = 'totem';
+  add(new THREE.CylinderGeometry(0.16, 0.19, 0.02, 32), mats.kick, totem.x, 0.01, totem.z, { parent: group });
+  const screenBottom = totem.y - totem.h / 2;
+  const poleH = Math.max(0.2, screenBottom - 0.02);
+  add(
+    new THREE.CylinderGeometry(0.015, 0.018, poleH, 16),
+    mats.metal,
+    totem.x,
+    0.02 + poleH / 2,
+    totem.z,
+    { parent: group },
+  );
+  // buildScreen places the bezel center at block.z + depth/2, so pass the front face.
+  const screen = buildScreen(add, { ...totem, z: totem.z - totem.d / 2 }, mats, tex.totem);
+  group.add(screen);
+  return group;
+}
+
+function buildPerson(add, cfg, layout, mats) {
+  const group = new THREE.Group();
+  group.name = 'person';
+  group.visible = cfg.person !== false;
+  group.position.set(layout.person.x, 0, layout.person.z);
+  const skin = mats.person;
+  add(new THREE.CapsuleGeometry(0.065, 0.58, 4, 12), skin, -0.08, 0.36, 0, { parent: group });
+  add(new THREE.CapsuleGeometry(0.065, 0.58, 4, 12), skin, 0.08, 0.36, 0, { parent: group });
+  add(new THREE.CapsuleGeometry(0.15, 0.42, 6, 16), skin, 0, 1.02, 0, { parent: group });
+  add(new THREE.CapsuleGeometry(0.045, 0.34, 4, 8), skin, -0.22, 1.05, 0, { parent: group, rot: [0, 0, 0.18] });
+  add(new THREE.CapsuleGeometry(0.045, 0.34, 4, 8), skin, 0.22, 1.05, 0, { parent: group, rot: [0, 0, -0.18] });
+  add(new THREE.CylinderGeometry(0.045, 0.05, 0.1, 12), skin, 0, 1.4, 0, { parent: group });
+  add(new THREE.SphereGeometry(0.11, 24, 16), skin, 0, 1.59, 0, { parent: group });
+  return group;
+}
+
+function buildFootprint(layout, mats) {
+  const y = 0.006;
+  const { x0, x1, z0, z1 } = layout.footprint;
+  const points = [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]]
+    .map(([x, z]) => new THREE.Vector3(x, y, z));
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mats.footprint);
+  line.name = 'footprint';
+  return line;
+}
