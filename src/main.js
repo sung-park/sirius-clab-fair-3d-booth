@@ -47,10 +47,23 @@ scene.fog = new THREE.Fog('#e4d9c8', 16, 32);
 
 const camera = new THREE.PerspectiveCamera(
   CAMERA.fov,
-  window.innerWidth / window.innerHeight,
+  1,
   CAMERA.near,
   CAMERA.far,
 );
+
+function fit() {
+  const width = viewport.clientWidth;
+  const height = viewport.clientHeight;
+  if (!width || !height) return;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+  labels.setSize(width, height);
+}
+
+new ResizeObserver(fit).observe(viewport);
+fit();
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -278,6 +291,7 @@ window.addEventListener('keydown', (event) => {
     commit('flag');
   } else if (event.key === 'h' || event.key === 'H') {
     document.body.classList.toggle('bare');
+    fit();
   }
 });
 
@@ -289,13 +303,6 @@ document.querySelector('#lightbox').addEventListener('click', (event) => {
 });
 document.querySelector('#open-drawing').addEventListener('click', () => {
   document.querySelector('#lightbox').hidden = false;
-});
-
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  labels.setSize(window.innerWidth, window.innerHeight);
 });
 
 window.addEventListener('hashchange', () => {
