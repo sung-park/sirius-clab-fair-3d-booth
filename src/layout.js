@@ -30,14 +30,14 @@ export const CAMERA = { fov: 36, near: 0.08, far: 40 };
 
 export const VIEWS = {
   hero: {
-    pos: [2.45, 1.66, 3.7],
-    target: [-0.08, 1.08, 0.02],
+    pos: [2.15, 1.62, 4.7],
+    target: [0.28, 1.06, 0.06],
     up: [0, 1, 0],
     rotate: true,
   },
   front: {
-    pos: [0, 1.2, 4.35],
-    target: [0, 1.12, 0],
+    pos: [0.22, 1.16, 5.35],
+    target: [0.22, 1.08, 0],
     up: [0, 1, 0],
     rotate: true,
   },
@@ -66,6 +66,7 @@ const ENUMS = {
   tv: ['left', 'center', 'right', 'off'],
   totem: ['left', 'right', 'off'],
   totemOrient: ['portrait', 'landscape'],
+  sign: ['care', 'patent', 'off'],
   cabinet: ['closed', 'open', 'logo'],
   finish: ['white', 'gray', 'green'],
   floor: ['stone', 'wood', 'carpet'],
@@ -73,9 +74,12 @@ const ENUMS = {
 };
 
 const IDENTITY = [
-  'structure', 'tv', 'totem', 'totemOrient', 'header',
+  'structure', 'tv', 'totem', 'totemOrient', 'sign', 'header',
   'features', 'results', 'samples', 'cabinet',
 ];
+
+/** One-panel portrait roll-up. 850 × 2000 mm is the usual fair size. */
+export const SIGN = { w: 0.85, h: 2, baseH: 0.07, baseD: 0.22 };
 
 export function screenSize(inches, portrait = false) {
   const diag = inches * 0.0254;
@@ -91,6 +95,7 @@ function base(over = {}) {
     tv: 'left',
     totem: 'left',
     totemOrient: 'portrait',
+    sign: 'care',
     header: true,
     features: true,
     results: true,
@@ -113,7 +118,7 @@ export const PRESET_LIST = [
   {
     id: 'drawing',
     name: '도면 기본안',
-    blurb: '평면도 기준입니다. 화면은 뒤쪽 월에 있고, 앞쪽 선반 깊이는 0.50m, 월과 선반을 합친 깊이는 0.75m입니다. 55″는 왼쪽 두 모듈에 있습니다.',
+    blurb: '평면도 기준입니다. 화면은 뒤쪽 월에 있고, 앞쪽 선반 깊이는 0.50m, 월과 선반을 합친 깊이는 0.75m입니다. 55″는 왼쪽 두 모듈에 있습니다. 오른쪽 입간판은 도면 밖에 더한 홍보물입니다.',
     config: base(),
   },
   {
@@ -167,10 +172,15 @@ export function matchPreset(cfg) {
 
 export function describe(cfg) {
   const preset = PRESET_LIST.find((item) => item.id === matchPreset(cfg));
-  if (preset) return preset.blurb;
   const structure = cfg.structure === 'flush' ? '일체형 깊이 0.75m.' : '월 + 선반 0.50m.';
   const tv = { left: 'TV 좌측', right: 'TV 우측', center: 'TV 중앙', off: 'TV 없음' }[cfg.tv];
-  return `${structure} ${tv}. 링크에 이 조합과 메모가 실립니다.`;
+  const sign = {
+    care: '우측 입간판은 케어 안입니다.',
+    patent: '우측 입간판은 특허 안입니다.',
+    off: '입간판은 빼 두었습니다.',
+  }[cfg.sign];
+  const lead = preset ? preset.blurb : `${structure} ${tv}.`;
+  return `${lead} ${sign}`;
 }
 
 function stackColumn(x, faceZ, top, bottom, cfg) {
@@ -247,6 +257,33 @@ function graphicWall(cfg, faceZ, top, bottom) {
     x += w + gap;
     return panel;
   });
+}
+
+function placeSign(cfg, totem, zFront) {
+  if (cfg.sign === 'off') return null;
+  let clearance = SPEC.width / 2;
+  if (totem && totem.x > 0) clearance = Math.max(clearance, totem.x + totem.w / 2);
+  const x = clearance + 0.18 + SIGN.w / 2;
+  // Forward of the front face, so the side view still shows the 0.75 m depth.
+  const z = zFront + 0.28;
+  return {
+    x,
+    y: SIGN.baseH + SIGN.h / 2,
+    z,
+    w: SIGN.w,
+    h: SIGN.h,
+    d: 0.016,
+    design: cfg.sign,
+  };
+}
+
+function placePerson(cfg, totem, sign, zFront) {
+  let x = cfg.totem === 'left' ? 1.72 : -1.72;
+  if (sign) {
+    x = -(SPEC.width / 2 + 0.46);
+    if (totem && totem.x < 0) x = Math.min(x, totem.x - totem.w / 2 - 0.36);
+  }
+  return { x, y: 0, z: zFront + 0.15, h: 1.7 };
 }
 
 export function computeLayout(cfg) {
@@ -363,9 +400,9 @@ export function computeLayout(cfg) {
     const scr = screenSize(32, portrait);
     const w = scr.w + SPEC.bezel * 2;
     const h = scr.h + SPEC.bezel * 2;
-    const sign = cfg.totem === 'right' ? 1 : -1;
+    const side = cfg.totem === 'right' ? 1 : -1;
     totem = {
-      x: sign * (SPEC.width / 2 + w / 2 + 0.08),
+      x: side * (SPEC.width / 2 + w / 2 + 0.08),
       y: 1.86 - h / 2,
       z: flush ? zFront - 0.12 : (faceZ + zFront) / 2,
       w,
@@ -377,12 +414,8 @@ export function computeLayout(cfg) {
     };
   }
 
-  const person = {
-    x: cfg.totem === 'left' ? 1.72 : -1.72,
-    y: 0,
-    z: zFront + 0.15,
-    h: 1.7,
-  };
+  const sign = placeSign(cfg, totem, zFront);
+  const person = placePerson(cfg, totem, sign, zFront);
 
   return {
     flush,
@@ -403,6 +436,7 @@ export function computeLayout(cfg) {
     posters,
     tray,
     totem,
+    sign,
     person,
     footprint: { x0: -SPEC.width / 2, x1: SPEC.width / 2, z0: zBack, z1: zFront },
   };

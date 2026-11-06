@@ -25,7 +25,7 @@ const viewport = document.querySelector('#viewport');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0xd5cec3);
+renderer.setClearColor(0x1a1816);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -41,8 +41,8 @@ labels.domElement.style.pointerEvents = 'none';
 viewport.appendChild(labels.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#d5cec3');
-scene.fog = new THREE.Fog('#d5cec3', 12, 19);
+scene.background = new THREE.Color('#1a1816');
+scene.fog = new THREE.Fog('#1a1816', 8, 18);
 
 const camera = new THREE.PerspectiveCamera(
   CAMERA.fov,
@@ -64,7 +64,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.72;
 pmrem.dispose();
 
-const hemi = new THREE.HemisphereLight('#f6f3ec', '#c8bfb2', 0.45);
+const hemi = new THREE.HemisphereLight('#f4efe6', '#2a2622', 0.42);
 scene.add(hemi);
 const key = new THREE.DirectionalLight('#fff7ee', 2.6);
 key.position.set(3.4, 6.6, 3.6);
@@ -80,7 +80,7 @@ key.shadow.bias = -0.00035;
 key.shadow.normalBias = 0.025;
 key.target.position.set(0, 1, 0);
 scene.add(key, key.target);
-const fill = new THREE.DirectionalLight('#e4edf8', 0.7);
+const fill = new THREE.DirectionalLight('#d5e0ea', 0.38);
 fill.position.set(-3.6, 3.4, 2.4);
 scene.add(fill);
 const spot = new THREE.SpotLight('#fff4e4', 8, 9, 0.62, 0.55, 1);
@@ -88,7 +88,7 @@ spot.position.set(0.1, 3.8, 2.2);
 spot.target.position.set(0, 1.45, 0);
 scene.add(spot, spot.target);
 
-const floorMat = new THREE.MeshStandardMaterial({ color: '#e4dfd6', roughness: 0.48, metalness: 0 });
+const floorMat = new THREE.MeshStandardMaterial({ color: '#2a2724', roughness: 0.9, metalness: 0 });
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 22), floorMat);
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -0.002;
@@ -97,13 +97,13 @@ scene.add(floor);
 
 const backWall = new THREE.Mesh(
   new THREE.PlaneGeometry(16, 6.5),
-  new THREE.MeshStandardMaterial({ color: '#cfc6ba', roughness: 0.96 }),
+  new THREE.MeshStandardMaterial({ color: '#24211e', roughness: 0.96 }),
 );
 backWall.position.set(0, 3.1, -3.6);
 backWall.receiveShadow = true;
 scene.add(backWall);
 
-const grid = new THREE.GridHelper(10, 10, 0xc9c2b6, 0xddd6cc);
+const grid = new THREE.GridHelper(10, 10, 0x8a8378, 0x3a3632);
 grid.position.y = 0.001;
 grid.visible = false;
 scene.add(grid);
@@ -136,7 +136,7 @@ function applyLight(mode) {
   fill.intensity = spotMode ? 0.18 : 0.7;
   spot.intensity = spotMode ? 28 : 8;
   scene.environmentIntensity = spotMode ? 0.32 : 0.72;
-  renderer.toneMappingExposure = spotMode ? 0.96 : 1;
+  renderer.toneMappingExposure = spotMode ? 0.9 : 0.96;
 }
 
 function applyFloor(kind) {
@@ -149,9 +149,9 @@ function applyFloor(kind) {
     floorMat.map = floors.carpet;
     floorMat.roughness = 0.96;
   } else {
-    floorMat.color.set('#e4dfd6');
+    floorMat.color.set('#2a2724');
     floorMat.map = null;
-    floorMat.roughness = 0.48;
+    floorMat.roughness = 0.9;
   }
   floorMat.needsUpdate = true;
 }

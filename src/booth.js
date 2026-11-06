@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { SPEC, SAMPLE_DX } from './layout.js';
+import { SIGN, SPEC, SAMPLE_DX } from './layout.js';
 
 function rounded(w, h, d, radius = 0.004, segments = 3) {
   const limit = Math.min(w, h, d) / 2 - 0.0005;
@@ -33,6 +33,7 @@ export function createBooth(cfg, layout, mats, tex) {
   buildPrints(add, layout, mats, tex);
   if (layout.tray) buildTray(add, layout.tray, mats);
   if (layout.totem) root.add(buildTotem(add, layout.totem, mats, tex));
+  if (layout.sign) root.add(buildSign(add, layout.sign, mats, tex));
   root.add(buildPerson(add, cfg, layout, mats));
   root.add(buildFootprint(layout, mats));
   return root;
@@ -300,6 +301,60 @@ function buildTotem(add, totem, mats, tex) {
   // buildScreen places the bezel center at block.z + depth/2, so pass the front face.
   const screen = buildScreen(add, { ...totem, z: totem.z - totem.d / 2 }, mats, tex.totem);
   group.add(screen);
+  return group;
+}
+
+function buildSign(add, sign, mats, tex) {
+  const group = new THREE.Group();
+  group.name = 'sign';
+  const baseH = SIGN.baseH;
+  const baseD = SIGN.baseD;
+  // PlaneGeometry faces +Z, which is the visitor side. No yaw.
+  add(
+    rounded(sign.w + 0.07, baseH, baseD, 0.01, 3),
+    mats.kick,
+    sign.x,
+    baseH / 2,
+    sign.z,
+    { parent: group },
+  );
+  const poleH = sign.h;
+  const poleZ = sign.z - 0.02;
+  for (const side of [-1, 1]) {
+    add(
+      new THREE.CylinderGeometry(0.008, 0.008, poleH, 12),
+      mats.metal,
+      sign.x + side * (sign.w / 2 - 0.015),
+      baseH + poleH / 2,
+      poleZ,
+      { parent: group },
+    );
+  }
+  add(
+    rounded(sign.w + 0.04, 0.03, 0.032, 0.004, 2),
+    mats.metal,
+    sign.x,
+    baseH + sign.h + 0.012,
+    sign.z,
+    { parent: group },
+  );
+  add(
+    new THREE.BoxGeometry(sign.w, sign.h, 0.012),
+    mats.bezel,
+    sign.x,
+    sign.y,
+    sign.z - 0.007,
+    { parent: group },
+  );
+  const material = new THREE.MeshBasicMaterial({ map: tex.sign, toneMapped: false });
+  add(
+    new THREE.PlaneGeometry(sign.w, sign.h),
+    material,
+    sign.x,
+    sign.y,
+    sign.z + 0.001,
+    { parent: group, cast: false, disposeMat: material },
+  );
   return group;
 }
 

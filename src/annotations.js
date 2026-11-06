@@ -6,7 +6,7 @@ export function createAnnotations(layout, cfg) {
   const root = new THREE.Group();
   root.name = 'annotations';
 
-  const dimMat = new THREE.LineBasicMaterial({ color: 0x2a2622 });
+  const dimMat = new THREE.LineBasicMaterial({ color: 0xf3efe6 });
   const dims = new THREE.Group();
   dims.name = 'dims';
   dims.visible = !!cfg.dims;
@@ -25,9 +25,9 @@ export function createAnnotations(layout, cfg) {
   const leftX = layout.totem && layout.totem.x < 0
     ? layout.totem.x - layout.totem.w / 2 - 0.18
     : x0 - 0.24;
-  const rightX = layout.totem && layout.totem.x > 0
-    ? layout.totem.x + layout.totem.w / 2 + 0.2
-    : x1 + 0.28;
+  let rightX = x1 + 0.28;
+  if (layout.totem && layout.totem.x > 0) rightX = Math.max(rightX, layout.totem.x + layout.totem.w / 2 + 0.2);
+  if (layout.sign) rightX = Math.max(rightX, layout.sign.x + layout.sign.w / 2 + 0.22);
 
   hDim(dims, dimMat, x0, x1, 0.04, layout.zFront + 0.55, '2.25 m');
   for (let index = 0; index < 3; index += 1) {
@@ -43,6 +43,21 @@ export function createAnnotations(layout, cfg) {
   }
   const personDimX = layout.person.x > 0 ? layout.person.x - 0.34 : layout.person.x + 0.34;
   vDim(dims, dimMat, personDimX, 0, 1.7, layout.person.z, '1.70 m');
+  if (layout.sign) {
+    const outer = layout.sign.x + layout.sign.w / 2 + 0.14;
+    const bottom = layout.sign.y - layout.sign.h / 2;
+    const top = layout.sign.y + layout.sign.h / 2;
+    vDim(dims, dimMat, outer, bottom, top, layout.sign.z, '2.00 m');
+    hDim(
+      dims,
+      dimMat,
+      layout.sign.x - layout.sign.w / 2,
+      layout.sign.x + layout.sign.w / 2,
+      bottom - 0.08,
+      layout.sign.z + 0.16,
+      '0.85 m',
+    );
+  }
 
   const frames = [];
   if (layout.tv) frames.push([layout.tv, '55″ TV (터치형 위치)']);
@@ -59,6 +74,10 @@ export function createAnnotations(layout, cfg) {
   if (layout.posters) panels.push(...layout.posters);
   for (const panel of panels) frames.push([panel, names[panel.key] || panel.key]);
   if (layout.totem) frames.push([layout.totem, '32″ 모니터']);
+  if (layout.sign) {
+    const copy = layout.sign.design === 'patent' ? '특허' : '케어';
+    frames.push([layout.sign, `입간판 · ${copy}`]);
+  }
   frames.push([layout.header, '상단 그래픽 2,250 × 300']);
 
   for (const [block, text] of frames) {

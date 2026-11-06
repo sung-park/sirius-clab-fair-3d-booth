@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   CAMERA,
   PRESET_LIST,
+  SIGN,
   SPEC,
   VIEWS,
   computeLayout,
@@ -71,10 +72,29 @@ for (const preset of PRESET_LIST) {
       : layout.totem.x - layout.totem.w / 2 - SPEC.width / 2;
     assert(towardBooth > 0.04, `${id} totem gap ${towardBooth}`);
   }
+  if (layout.sign) {
+    assert(layout.sign.w === SIGN.w && layout.sign.h === SIGN.h, `${id} sign size ${layout.sign.w}×${layout.sign.h}`);
+    assert(layout.sign.x > 0, `${id} sign is on the visitor's right`);
+    assert(layout.sign.x - layout.sign.w / 2 > SPEC.width / 2 + 0.1, `${id} sign clears the booth`);
+    assert(layout.sign.z - SIGN.baseD / 2 > layout.zFront + 0.02, `${id} sign base is in front of the booth`);
+    assert(layout.sign.design === preset.config.sign, `${id} sign design`);
+    const stand = { x: layout.sign.x, z: layout.sign.z, w: layout.sign.w, d: SIGN.baseD };
+    if (layout.totem) assert(clears(stand, layout.totem, 0.06), `${id} sign clears the totem`);
+    const person = { x: layout.person.x, z: layout.person.z, w: 0.5, d: 0.36 };
+    assert(clears(person, stand, 0.05), `${id} person clears the sign`);
+  } else {
+    assert(preset.config.sign === 'off', `${id} missing sign`);
+  }
   if (!layout.flush && layout.tray) {
     assert(layout.tray.z - layout.tray.d / 2 >= layout.faceZ - 0.02, `${id} tray back`);
     assert(layout.tray.z + layout.tray.d / 2 <= layout.zFront + 0.02, `${id} tray front`);
   }
+}
+
+function clears(a, b, pad) {
+  const dx = Math.abs(a.x - b.x) - ((a.w || 0) + (b.w || 0)) / 2;
+  const dz = Math.abs(a.z - b.z) - ((a.d || 0) + (b.d || 0)) / 2;
+  return dx > pad || dz > pad;
 }
 
 function project(view, point) {
@@ -100,6 +120,11 @@ const round = decodeConfig(encodeConfig({
   view: 'side',
 }));
 assert(round && round.tv === 'center' && round.note === 'TV를 가운데로' && round.view === 'side', 'hash roundtrip');
+const signed = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: 'patent' }));
+assert(signed && signed.sign === 'patent', 'sign design roundtrip');
+const hidden = computeLayout({ ...PRESET_LIST[0].config, sign: 'off' });
+assert(hidden.sign === null, 'sign can be removed');
+assert(hidden.person.x > 0, 'without the sign the figure returns to the open side');
 
 if (failed) {
   console.error(`${failed} checks failed`);

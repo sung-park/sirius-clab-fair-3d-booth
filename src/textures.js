@@ -316,6 +316,129 @@ function drawProduct(ctx, w, h) {
   });
 }
 
+function drawSignCare(ctx, w, h) {
+  ctx.fillStyle = '#070807';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = GREEN;
+  ctx.fillRect(0, 0, w, h * 0.012);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#d7f3e6';
+  ctx.font = `650 ${Math.floor(w * 0.045)}px ${FONT}`;
+  ctx.fillText('24기 MX', w * 0.9, h * 0.055);
+
+  paw(ctx, w / 2, h * 0.15, w * 0.16, '#f4faf6');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `650 ${Math.floor(w * 0.12)}px ${FONT}`;
+  ctx.fillText('Sirius', w / 2, h * 0.27);
+  ctx.fillStyle = '#c9ddd3';
+  ctx.font = `500 ${Math.floor(w * 0.04)}px ${FONT}`;
+  const tagline = [
+    '반려견의 일상을 기록하고',
+    '작은 이상 신호까지 놓치지 않는',
+    'AI 펫 케어',
+  ];
+  tagline.forEach((line, index) => {
+    ctx.fillText(line, w / 2, h * 0.318 + index * h * 0.032);
+  });
+
+  ctx.fillStyle = GREEN;
+  roundRect(ctx, w * 0.1, h * 0.45, w * 0.8, h * 0.16, w * 0.03);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `650 ${Math.floor(w * 0.16)}px ${FONT}`;
+  ctx.fillText('13g', w / 2, h * 0.535);
+  ctx.font = `500 ${Math.floor(w * 0.038)}px ${FONT}`;
+  ctx.fillStyle = '#e7fff4';
+  ctx.fillText('하루 종일 착용해도 편한 무게', w / 2, h * 0.575);
+
+  const rows = [
+    ['행동', '산책부터 휴식까지 일상을 기록'],
+    ['긁기 · 핥기', '작은 이상 신호도 남김'],
+    ['호흡수', '안정 상태까지 정밀하게 측정'],
+  ];
+  rows.forEach((row, index) => {
+    const y = h * 0.66 + index * h * 0.075;
+    ctx.fillStyle = GREEN;
+    roundRect(ctx, w * 0.1, y - h * 0.02, w * 0.045, h * 0.028, 6);
+    ctx.fill();
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `650 ${Math.floor(w * 0.048)}px ${FONT}`;
+    ctx.fillText(row[0], w * 0.18, y);
+    ctx.fillStyle = '#b7cfc4';
+    ctx.font = `500 ${Math.floor(w * 0.034)}px ${FONT}`;
+    ctx.fillText(row[1], w * 0.18, y + h * 0.028);
+  });
+
+  ctx.fillStyle = GREEN;
+  ctx.fillRect(0, h * 0.9, w, h * 0.1);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `650 ${Math.floor(w * 0.046)}px ${FONT}`;
+  ctx.fillText('앱 · 파트너십 구독', w / 2, h * 0.945);
+  ctx.font = `500 ${Math.floor(w * 0.034)}px ${FONT}`;
+  ctx.fillStyle = '#d7f3e6';
+  ctx.fillText('행동·생체 데이터로 잇는 펫 케어', w / 2, h * 0.972);
+  ctx.textAlign = 'left';
+}
+
+function drawSignPatent(ctx, w, h) {
+  ctx.fillStyle = GREEN;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#07110e';
+  ctx.fillRect(0, 0, w, h * 0.2);
+  paw(ctx, w * 0.22, h * 0.09, w * 0.09, '#f4faf6');
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `650 ${Math.floor(w * 0.09)}px ${FONT}`;
+  ctx.fillText('Sirius', w * 0.38, h * 0.095);
+  ctx.font = `500 ${Math.floor(w * 0.036)}px ${FONT}`;
+  ctx.fillStyle = '#c9ddd3';
+  ctx.fillText('AI 펫 케어', w * 0.38, h * 0.13);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#d7f3e6';
+  ctx.font = `650 ${Math.floor(w * 0.04)}px ${FONT}`;
+  ctx.fillText('24기 MX', w * 0.9, h * 0.17);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#e7fff4';
+  ctx.font = `650 ${Math.floor(w * 0.055)}px ${FONT}`;
+  ctx.fillText('과제 성과', w / 2, h * 0.27);
+
+  const cards = [
+    ['A1 특허', '1', '건'],
+    ['A2 특허', '19', '건'],
+  ];
+  cards.forEach((card, index) => {
+    const y = h * 0.31 + index * h * 0.24;
+    roundRect(ctx, w * 0.08, y, w * 0.84, h * 0.21, w * 0.03);
+    ctx.fillStyle = '#f7f4ef';
+    ctx.fill();
+    ctx.fillStyle = GREEN;
+    ctx.font = `650 ${Math.floor(w * 0.05)}px ${FONT}`;
+    ctx.fillText(card[0], w / 2, y + h * 0.055);
+    ctx.fillStyle = '#10241c';
+    ctx.font = `650 ${Math.floor(w * 0.2)}px ${FONT}`;
+    ctx.fillText(card[1], w / 2, y + h * 0.145);
+    ctx.font = `600 ${Math.floor(w * 0.04)}px ${FONT}`;
+    ctx.fillStyle = '#3e5c50';
+    ctx.fillText(card[2], w / 2, y + h * 0.185);
+  });
+
+  ctx.fillStyle = '#07110e';
+  ctx.fillRect(0, h * 0.84, w, h * 0.16);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `500 ${Math.floor(w * 0.036)}px ${FONT}`;
+  ctx.fillText('반려견의 일상을 기록하고', w / 2, h * 0.885);
+  ctx.fillText('작은 이상 신호까지 놓치지 않습니다', w / 2, h * 0.915);
+  ctx.font = `650 ${Math.floor(w * 0.04)}px ${FONT}`;
+  ctx.fillStyle = '#d7f3e6';
+  ctx.fillText('13g 웨어러블  ·  앱  ·  구독', w / 2, h * 0.955);
+  ctx.textAlign = 'left';
+}
+
 function drawDoor(ctx, w, h) {
   ctx.fillStyle = '#f7f4ef';
   ctx.fillRect(0, 0, w, h);
@@ -362,6 +485,7 @@ export function buildTextures(layout, anisotropy) {
     vision: null,
     product: null,
     door: null,
+    sign: null,
   };
 
   if (layout.tv) {
@@ -374,6 +498,12 @@ export function buildTextures(layout, anisotropy) {
     const { c, ctx } = canvas(portrait ? 720 : 1280, portrait ? 1280 : 720);
     drawTotem(ctx, c.width, c.height, portrait);
     textures.totem = keep(toTexture(c, anisotropy));
+  }
+  if (layout.sign) {
+    const { c, ctx } = canvas(900, 2118);
+    if (layout.sign.design === 'patent') drawSignPatent(ctx, c.width, c.height);
+    else drawSignCare(ctx, c.width, c.height);
+    textures.sign = keep(toTexture(c, anisotropy));
   }
 
   const panels = [];
