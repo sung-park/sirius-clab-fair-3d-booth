@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sirius 과제 부스 · 3D 구성안</title>
-    <meta name="description" content="Sirius 과제 부스를 도면 치수 기준으로 돌려 보고, 구성을 바꿔 링크로 공유합니다." />
+    <meta name="description" content="Sirius 과제 부스를 도면 위치 그대로 컨퍼런스 룸에 두고, 입간판 안을 링크로 공유합니다." />
     <link rel="icon" href="./favicon.svg" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   </head>
@@ -14,75 +14,19 @@
       <img src="./favicon.svg" width="36" height="36" alt="" />
       <div>
         <h1>Sirius 과제 부스</h1>
-        <p>구성을 바꿔 보고, 링크를 보내 같은 화면에서 논의합니다.</p>
+        <p>도면 위치는 고정입니다. 입간판 안을 바꿔 링크를 보냅니다.</p>
       </div>
     </header>
     <aside id="panel">
       <div class="panel-body">
-      <p class="spec">폭 2.25 m · 깊이 0.75 m · 높이 2.25 m<br />선반 높이 1.00 m · 선반 깊이 0.50 m · 상단 그래픽 300 mm</p>
-      <p class="k">프리셋</p>
-      <div id="presets" class="presets"></div>
+      <p class="spec">폭 2.25 m · 깊이 0.75 m · 높이 2.25 m<br />선반 높이 1.00 m · 선반 깊이 0.50 m · 상단 그래픽 300 mm<br />55″ 왼쪽 · 32″ 모니터 왼쪽 세로 · 선반 수납</p>
       <p id="blurb"></p>
-
-      <p class="k">구조</p>
-      <div class="seg" data-key="structure">
-        <button type="button" data-value="split">월 + 선반</button>
-        <button type="button" data-value="flush">측면 일체형</button>
-      </div>
-
-      <p class="k">55″ 터치 TV</p>
-      <div class="seg" data-key="tv">
-        <button type="button" data-value="left">좌측</button>
-        <button type="button" data-value="center">중앙</button>
-        <button type="button" data-value="right">우측</button>
-        <button type="button" data-value="off">없음</button>
-      </div>
-
-      <p class="k">32″ 모니터</p>
-      <div class="seg" data-key="totem">
-        <button type="button" data-value="left">좌측</button>
-        <button type="button" data-value="right">우측</button>
-        <button type="button" data-value="off">없음</button>
-      </div>
-      <div class="seg" data-key="totemOrient">
-        <button type="button" data-value="portrait">세로</button>
-        <button type="button" data-value="landscape">가로</button>
-      </div>
 
       <p class="k">입간판 · 우측 0.85 × 2.00 m</p>
       <div class="seg" data-key="sign">
         <button type="button" data-value="care">케어</button>
         <button type="button" data-value="patent">특허</button>
         <button type="button" data-value="off">없음</button>
-      </div>
-
-      <p class="k">벽면</p>
-      <label class="check"><input type="checkbox" data-key="header" /> 상단 그래픽</label>
-      <label class="check"><input type="checkbox" data-key="features" /> 특성 기능</label>
-      <label class="check"><input type="checkbox" data-key="results" /> 성과 출력물</label>
-      <label class="check"><input type="checkbox" data-key="samples" /> 시료 비교</label>
-
-      <p class="k">하부 선반</p>
-      <div class="seg" data-key="cabinet">
-        <button type="button" data-value="closed">수납</button>
-        <button type="button" data-value="open">오픈</button>
-        <button type="button" data-value="logo">로고</button>
-      </div>
-
-      <p class="k">마감</p>
-      <div class="seg" data-key="finish">
-        <button type="button" data-value="white">웜화이트</button>
-        <button type="button" data-value="gray">라이트 그레이</button>
-        <button type="button" data-value="green">딥 그린</button>
-      </div>
-      <div class="seg" data-key="floor">
-        <button type="button" data-value="stone">스톤</button>
-        <button type="button" data-value="wood">우드</button>
-        <button type="button" data-value="carpet">카펫</button>
-      </div>
-      <div class="seg" data-key="light">
-        <button type="button" data-value="hall">홀 조명</button>
-        <button type="button" data-value="spot">스포트</button>
       </div>
 
       <p class="k">논의 메모</p>

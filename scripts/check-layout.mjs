@@ -8,6 +8,7 @@ import {
   computeLayout,
   decodeConfig,
   encodeConfig,
+  lockConfig,
   screenSize,
 } from '../src/layout.js';
 
@@ -115,11 +116,18 @@ const planRight = project(VIEWS.top, new THREE.Vector3(1, 0, 0));
 assert(planRight.x > 0.05, `plan view should put +X on the right, ndc x ${planRight.x}`);
 
 const round = decodeConfig(encodeConfig({
-  ...PRESET_LIST[2].config,
-  note: 'TV를 가운데로',
+  ...PRESET_LIST[0].config,
+  structure: 'flush',
+  tv: 'center',
+  totem: 'right',
+  cabinet: 'open',
+  note: '입간판 논의',
   view: 'side',
+  sign: 'patent',
 }));
-assert(round && round.tv === 'center' && round.note === 'TV를 가운데로' && round.view === 'side', 'hash roundtrip');
+assert(round && round.note === '입간판 논의' && round.view === 'side' && round.sign === 'patent', 'hash roundtrip');
+assert(round.structure === 'split' && round.tv === 'left' && round.totem === 'left' && round.cabinet === 'closed', 'booth layout stays locked');
+assert(lockConfig({ tv: 'right' }).tv === 'left', 'lock keeps the drawing TV');
 const signed = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: 'patent' }));
 assert(signed && signed.sign === 'patent', 'sign design roundtrip');
 const hidden = computeLayout({ ...PRESET_LIST[0].config, sign: 'off' });

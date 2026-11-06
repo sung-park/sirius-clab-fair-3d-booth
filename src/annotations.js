@@ -6,7 +6,7 @@ export function createAnnotations(layout, cfg) {
   const root = new THREE.Group();
   root.name = 'annotations';
 
-  const dimMat = new THREE.LineBasicMaterial({ color: 0xf3efe6 });
+  const dimMat = new THREE.LineBasicMaterial({ color: 0x3a342c });
   const dims = new THREE.Group();
   dims.name = 'dims';
   dims.visible = !!cfg.dims;

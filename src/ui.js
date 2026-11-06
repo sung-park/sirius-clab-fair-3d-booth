@@ -1,17 +1,6 @@
-import { PRESET_LIST, describe, matchPreset } from './layout.js';
+import { describe } from './layout.js';
 
 export function mountUI(api) {
-  const presets = document.querySelector('#presets');
-  for (const preset of PRESET_LIST) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.preset = preset.id;
-    button.textContent = preset.name;
-    button.title = preset.blurb;
-    button.addEventListener('click', () => api.applyPreset(preset.id));
-    presets.appendChild(button);
-  }
-
   document.querySelectorAll('.seg').forEach((seg) => {
     seg.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', () => api.set(seg.dataset.key, button.dataset.value));
@@ -40,10 +29,6 @@ export function mountUI(api) {
   document.querySelector('#reset').addEventListener('click', () => api.applyPreset('drawing'));
 
   function refresh(state, activeView) {
-    const id = matchPreset(state);
-    document.querySelectorAll('[data-preset]').forEach((button) => {
-      button.classList.toggle('on', button.dataset.preset === id);
-    });
     document.querySelectorAll('.seg').forEach((seg) => {
       seg.querySelectorAll('button').forEach((button) => {
         button.classList.toggle('on', button.dataset.value === String(state[seg.dataset.key]));

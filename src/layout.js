@@ -114,53 +114,36 @@ function base(over = {}) {
   };
 }
 
+const LOCKED = {
+  structure: 'split',
+  tv: 'left',
+  totem: 'left',
+  totemOrient: 'portrait',
+  header: true,
+  features: true,
+  results: true,
+  samples: true,
+  cabinet: 'closed',
+  finish: 'white',
+  floor: 'carpet',
+  light: 'hall',
+};
+
+export function lockConfig(cfg) {
+  return { ...cfg, ...LOCKED };
+}
+
 export const PRESET_LIST = [
   {
     id: 'drawing',
     name: '도면 기본안',
-    blurb: '평면도 기준입니다. 화면은 뒤쪽 월에 있고, 앞쪽 선반 깊이는 0.50m, 월과 선반을 합친 깊이는 0.75m입니다. 55″는 왼쪽 두 모듈에 있습니다. 오른쪽 입간판은 도면 밖에 더한 홍보물입니다.',
+    blurb: '도면 위치 그대로입니다. 화면은 뒤쪽 월, 앞쪽 선반 깊이는 0.50m, 55″는 왼쪽 두 모듈, 32″ 모니터는 왼쪽 세로입니다. 오른쪽 입간판만 두 안으로 바꿉니다.',
     config: base(),
-  },
-  {
-    id: 'flush',
-    name: '측면 일체형',
-    blurb: '측면도 기준입니다. 깊이 0.75m가 한 몸이고, 55″ 화면이 정면에서 앞으로 살짝 나옵니다.',
-    config: base({ structure: 'flush' }),
-  },
-  {
-    id: 'center',
-    name: 'TV 중앙',
-    blurb: '55″를 정중앙에 두고 좌우에 제품·성과 패널을 붙입니다. 시료는 선반 한가운데에 둡니다.',
-    config: base({ tv: 'center' }),
-  },
-  {
-    id: 'mirror',
-    name: '좌우 반전',
-    blurb: '도면의 좌우를 바꿉니다. 55″는 오른쪽 두 모듈, 32″ 모니터와 성과 패널은 왼쪽입니다.',
-    config: base({ tv: 'right', totem: 'right' }),
-  },
-  {
-    id: 'results',
-    name: '성과 강조',
-    blurb: '특성 패널을 접고 오른쪽 벽을 성과 출력물로 키웁니다. 시료 비교는 선반 위에 둡니다.',
-    config: base({ features: false }),
-  },
-  {
-    id: 'wall',
-    name: '그래픽 월',
-    blurb: '55″ 없이 비전, 제품, 성과 그래픽 세 면으로 벽을 채웁니다. 상단 배너는 그대로입니다.',
-    config: base({ tv: 'off' }),
-  },
-  {
-    id: 'consult',
-    name: '오픈 상담',
-    blurb: '아래 선반을 열고 32″ 모니터를 오른쪽으로 옮겨, 앞에서 상담하는 동선으로 바꿉니다.',
-    config: base({ cabinet: 'open', totem: 'right' }),
   },
 ];
 
 export function defaultConfig() {
-  return { ...PRESET_LIST[0].config };
+  return lockConfig({ ...PRESET_LIST[0].config });
 }
 
 export function matchPreset(cfg) {
@@ -171,16 +154,12 @@ export function matchPreset(cfg) {
 }
 
 export function describe(cfg) {
-  const preset = PRESET_LIST.find((item) => item.id === matchPreset(cfg));
-  const structure = cfg.structure === 'flush' ? '일체형 깊이 0.75m.' : '월 + 선반 0.50m.';
-  const tv = { left: 'TV 좌측', right: 'TV 우측', center: 'TV 중앙', off: 'TV 없음' }[cfg.tv];
   const sign = {
     care: '우측 입간판은 케어 안입니다.',
     patent: '우측 입간판은 특허 안입니다.',
     off: '입간판은 빼 두었습니다.',
   }[cfg.sign];
-  const lead = preset ? preset.blurb : `${structure} ${tv}.`;
-  return `${lead} ${sign}`;
+  return `${PRESET_LIST[0].blurb} ${sign}`;
 }
 
 function stackColumn(x, faceZ, top, bottom, cfg) {
@@ -493,7 +472,7 @@ export function decodeConfig(hash) {
       const u = triad(raw.cam.u);
       if (p && t && u) cfg.cam = { p, t, u };
     }
-    return cfg;
+    return lockConfig(cfg);
   } catch {
     return null;
   }

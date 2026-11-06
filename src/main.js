@@ -5,7 +5,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createBooth } from './booth.js';
 import { createAnnotations } from './annotations.js';
 import { createMaterials, applyFinish } from './materials.js';
-import { buildTextures, buildFloors } from './textures.js';
+import { buildTextures } from './textures.js';
+import { createConferenceRoom } from './room.js';
 import { mountUI } from './ui.js';
 import {
   CAMERA,
@@ -25,11 +26,11 @@ const viewport = document.querySelector('#viewport');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x1a1816);
+renderer.setClearColor(0xe4d9c8);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.94;
+renderer.toneMappingExposure = 1;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 viewport.appendChild(renderer.domElement);
 
@@ -41,8 +42,8 @@ labels.domElement.style.pointerEvents = 'none';
 viewport.appendChild(labels.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#1a1816');
-scene.fog = new THREE.Fog('#1a1816', 8, 18);
+scene.background = new THREE.Color('#e4d9c8');
+scene.fog = new THREE.Fog('#e4d9c8', 16, 32);
 
 const camera = new THREE.PerspectiveCamera(
   CAMERA.fov,
@@ -53,7 +54,7 @@ const camera = new THREE.PerspectiveCamera(
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.maxDistance = 12;
+controls.maxDistance = 16;
 controls.minDistance = 1.2;
 controls.maxPolarAngle = Math.PI / 2 - 0.04;
 controls.screenSpacePanning = true;
@@ -61,13 +62,13 @@ controls.target.set(0, 1.05, 0);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.72;
+scene.environmentIntensity = 0.55;
 pmrem.dispose();
 
-const hemi = new THREE.HemisphereLight('#f4efe6', '#2a2622', 0.42);
+const hemi = new THREE.HemisphereLight('#f7f1e6', '#d9cbb8', 0.85);
 scene.add(hemi);
-const key = new THREE.DirectionalLight('#fff7ee', 2.6);
-key.position.set(3.4, 6.6, 3.6);
+const key = new THREE.DirectionalLight('#fff6ec', 1.45);
+key.position.set(3.2, 5.5, 4.4);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.near = 0.4;
@@ -80,36 +81,22 @@ key.shadow.bias = -0.00035;
 key.shadow.normalBias = 0.025;
 key.target.position.set(0, 1, 0);
 scene.add(key, key.target);
-const fill = new THREE.DirectionalLight('#d5e0ea', 0.38);
-fill.position.set(-3.6, 3.4, 2.4);
+const fill = new THREE.DirectionalLight('#f3eadc', 0.55);
+fill.position.set(-4.2, 4.2, 2.2);
 scene.add(fill);
-const spot = new THREE.SpotLight('#fff4e4', 8, 9, 0.62, 0.55, 1);
-spot.position.set(0.1, 3.8, 2.2);
-spot.target.position.set(0, 1.45, 0);
+const spot = new THREE.SpotLight('#fff6e8', 6, 14, 0.85, 0.65, 1);
+spot.position.set(0.2, 5.2, 2.4);
+spot.target.position.set(0, 1.3, 0);
 scene.add(spot, spot.target);
 
-const floorMat = new THREE.MeshStandardMaterial({ color: '#2a2724', roughness: 0.9, metalness: 0 });
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 22), floorMat);
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = -0.002;
-floor.receiveShadow = true;
-scene.add(floor);
+scene.add(createConferenceRoom(renderer.capabilities.getMaxAnisotropy()));
 
-const backWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(16, 6.5),
-  new THREE.MeshStandardMaterial({ color: '#24211e', roughness: 0.96 }),
-);
-backWall.position.set(0, 3.1, -3.6);
-backWall.receiveShadow = true;
-scene.add(backWall);
-
-const grid = new THREE.GridHelper(10, 10, 0x8a8378, 0x3a3632);
+const grid = new THREE.GridHelper(10, 10, 0x8d7d68, 0xd2c6b4);
 grid.position.y = 0.001;
 grid.visible = false;
 scene.add(grid);
 
 const mats = createMaterials();
-const floors = buildFloors(renderer.capabilities.getMaxAnisotropy());
 let headerTexture = null;
 let booth = null;
 let anim = null;
@@ -128,33 +115,6 @@ function readState() {
 }
 
 let state = readState();
-
-function applyLight(mode) {
-  const spotMode = mode === 'spot';
-  hemi.intensity = spotMode ? 0.16 : 0.45;
-  key.intensity = spotMode ? 1.35 : 2.6;
-  fill.intensity = spotMode ? 0.18 : 0.7;
-  spot.intensity = spotMode ? 28 : 8;
-  scene.environmentIntensity = spotMode ? 0.32 : 0.72;
-  renderer.toneMappingExposure = spotMode ? 0.9 : 0.96;
-}
-
-function applyFloor(kind) {
-  if (kind === 'wood') {
-    floorMat.color.set('#ffffff');
-    floorMat.map = floors.wood;
-    floorMat.roughness = 0.64;
-  } else if (kind === 'carpet') {
-    floorMat.color.set('#ffffff');
-    floorMat.map = floors.carpet;
-    floorMat.roughness = 0.96;
-  } else {
-    floorMat.color.set('#2a2724');
-    floorMat.map = null;
-    floorMat.roughness = 0.9;
-  }
-  floorMat.needsUpdate = true;
-}
 
 function discard(root) {
   const textures = root.userData.textures;
@@ -243,8 +203,6 @@ function toast(message) {
 function commit(kind) {
   if (kind === 'struct') rebuild();
   applyFinish(mats, state.finish);
-  applyFloor(state.floor);
-  applyLight(state.light);
   applyFlags();
   syncHash();
   ui.refresh(state, currentView);
@@ -343,8 +301,6 @@ window.addEventListener('hashchange', () => {
   state = next;
   rebuild();
   applyFinish(mats, state.finish);
-  applyFloor(state.floor);
-  applyLight(state.light);
   if (state.view === 'free' && state.cam) restoreCam(state.cam);
   else goView(state.view || 'hero', true);
   ui.refresh(state, currentView);
@@ -390,8 +346,6 @@ async function boot() {
   document.querySelector('#drawing-img').src = `${import.meta.env.BASE_URL}brand/drawing.png`;
   rebuild();
   applyFinish(mats, state.finish);
-  applyFloor(state.floor);
-  applyLight(state.light);
   if (query.get('view')) goView(query.get('view'), true);
   else if (state.view === 'free' && state.cam) restoreCam(state.cam);
   else goView(state.view || 'hero', true);
