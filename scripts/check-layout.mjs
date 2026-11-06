@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {
   CAMERA,
   PRESET_LIST,
-  PARTNER_ASPECT,
+  POSTER_ASPECT,
   SIGN,
   SPEC,
   VIEWS,
@@ -75,8 +75,7 @@ for (const preset of PRESET_LIST) {
     assert(towardBooth > 0.04, `${id} totem gap ${towardBooth}`);
   }
   if (layout.sign) {
-    const expectedW = preset.config.sign === 'partner' ? SIGN.h * PARTNER_ASPECT : SIGN.w;
-    assert(Math.abs(layout.sign.w - expectedW) < 1e-9, `${id} sign width ${layout.sign.w}`);
+    assert(Math.abs(layout.sign.w - SIGN.h * POSTER_ASPECT) < 1e-9, `${id} sign width ${layout.sign.w}`);
     assert(layout.sign.h === SIGN.h, `${id} sign height ${layout.sign.h}`);
     assert(Math.abs(layout.sign.y - (SIGN.baseH + SIGN.h / 2)) < 1e-9, `${id} sign sits on its base`);
     assert(layout.sign.x > 0, `${id} sign is on the visitor's right`);
@@ -88,7 +87,7 @@ for (const preset of PRESET_LIST) {
     const person = { x: layout.person.x, z: layout.person.z, w: 0.5, d: 0.36 };
     assert(clears(person, stand, 0.05), `${id} person clears the sign`);
   } else {
-    assert(preset.config.sign === 'off', `${id} missing sign`);
+    assert(false, `${id} sign is always present`);
   }
   if (!layout.flush && layout.tray) {
     assert(layout.tray.z - layout.tray.d / 2 >= layout.faceZ - 0.02, `${id} tray back`);
@@ -127,21 +126,20 @@ const round = decodeConfig(encodeConfig({
   cabinet: 'open',
   note: '입간판 논의',
   view: 'side',
-  sign: 'patent',
+  sign: 'user',
 }));
-assert(round && round.note === '입간판 논의' && round.view === 'side' && round.sign === 'patent', 'hash roundtrip');
+assert(round && round.note === '입간판 논의' && round.view === 'side' && round.sign === 'user', 'hash roundtrip');
 assert(round.structure === 'split' && round.tv === 'left' && round.totem === 'left' && round.cabinet === 'closed', 'booth layout stays locked');
 assert(lockConfig({ tv: 'right' }).tv === 'left', 'lock keeps the drawing TV');
-const signed = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: 'patent' }));
-assert(signed && signed.sign === 'patent', 'sign design roundtrip');
-const patent = computeLayout({ ...PRESET_LIST[0].config, sign: 'patent' });
-assert(patent.sign.w === SIGN.w, 'care and patent keep the 0.85 m roll-up width');
-const partner = computeLayout(PRESET_LIST[0].config);
-assert(Math.abs(partner.sign.w / partner.sign.h - PARTNER_ASPECT) < 1e-9, 'partner poster keeps the photo ratio');
-assert(partner.sign.w < SIGN.w, 'partner poster is narrower than the roll-up');
-const hidden = computeLayout({ ...PRESET_LIST[0].config, sign: 'off' });
-assert(hidden.sign === null, 'sign can be removed');
-assert(hidden.person.x > 0, 'without the sign the figure returns to the open side');
+const signed = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: 'user' }));
+assert(signed && signed.sign === 'user', 'sign design roundtrip');
+for (const retired of ['care', 'patent', 'off']) {
+  const dropped = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: retired }));
+  assert(dropped && dropped.sign === 'partner', `${retired} falls back to the partner poster`);
+}
+const user = computeLayout({ ...PRESET_LIST[0].config, sign: 'user' });
+assert(Math.abs(user.sign.w / user.sign.h - POSTER_ASPECT) < 1e-9, 'user poster keeps the photo ratio');
+assert(Math.abs(user.sign.w - computeLayout(PRESET_LIST[0].config).sign.w) < 1e-9, 'both posters share one width');
 
 if (failed) {
   console.error(`${failed} checks failed`);
