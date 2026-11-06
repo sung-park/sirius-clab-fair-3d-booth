@@ -228,6 +228,34 @@ function buildPrints(add, layout, mats, tex) {
   for (const panel of panels) {
     const map = tex[panel.key];
     if (!map) continue;
+    if (panel.key === 'hardware' && panel.style === 'print') {
+      // Pasted sheet. panel.z is the wall face, so the back sits 2 mm proud
+      // and does not z-fight. No lip and no shadow gap: a gap that clears
+      // normalBias (0.025) would float the sheet off the wall.
+      const sheet = 0.003;
+      const lift = 0.002;
+      const paper = mats.paper.clone();
+      paper.color.set('#f6f7f5');
+      paper.roughness = 0.82;
+      add(
+        rounded(panel.w, panel.h, sheet, 0.001, 2),
+        paper,
+        panel.x,
+        panel.y,
+        panel.z + lift + sheet / 2,
+        { name: 'hardware-print', cast: false, disposeMat: paper },
+      );
+      const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
+      add(
+        new THREE.PlaneGeometry(panel.w, panel.h),
+        material,
+        panel.x,
+        panel.y,
+        panel.z + lift + sheet + 0.001,
+        { name: 'hardware-print-face', cast: false, receive: false, disposeMat: material },
+      );
+      continue;
+    }
     if (panel.key === 'hardware') {
       // Shallow plate, not a case. The gap has to clear the shadow bias
       // or the contact shadow is eaten and the plate still looks glued on.

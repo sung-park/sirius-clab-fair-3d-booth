@@ -124,6 +124,7 @@ const mats = createMaterials();
 let headerTexture = null;
 let partnerTexture = null;
 let userTexture = null;
+let hardwareTexture = null;
 let booth = null;
 let anim = null;
 let currentView = 'hero';
@@ -171,6 +172,7 @@ function rebuild() {
   const tex = buildTextures(layout, renderer.capabilities.getMaxAnisotropy());
   tex.header = headerTexture;
   tex.sign = layout.sign?.design === 'user' ? userTexture : partnerTexture;
+  if (state.plate === 'print' && hardwareTexture) tex.hardware = hardwareTexture;
   booth = createBooth(state, layout, mats, tex);
   booth.add(createAnnotations(layout, state));
   scene.add(booth);
@@ -481,6 +483,14 @@ async function boot() {
     userTexture = texture;
   } catch {
     toast('사용자 포스터 이미지를 불러오지 못했습니다.');
+  }
+  try {
+    const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/hardware-print.png`);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = anisotropy;
+    hardwareTexture = texture;
+  } catch {
+    toast('하드웨어 인쇄물 이미지를 불러오지 못했습니다.');
   }
   document.querySelector('#drawing-img').src = `${import.meta.env.BASE_URL}brand/drawing.png`;
   rebuild();

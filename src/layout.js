@@ -67,6 +67,7 @@ const ENUMS = {
   totem: ['left', 'right', 'off'],
   totemOrient: ['portrait', 'landscape'],
   sign: ['partner', 'user'],
+  plate: ['acrylic', 'print'],
   cabinet: ['closed', 'open', 'logo'],
   finish: ['white', 'gray', 'green'],
   floor: ['stone', 'wood', 'carpet'],
@@ -82,6 +83,8 @@ const IDENTITY = [
 export const SIGN = { w: 0.85, h: 2, baseH: 0.07, baseD: 0.22 };
 /** Partner and user posters are both 667 × 2000. Keep that ratio so type and the QR stay square. */
 export const POSTER_ASPECT = 667 / 2000;
+/** Printed hardware sheet, 784 × 1168. Contain it in the column; do not stretch the artwork. */
+export const HARDWARE_PRINT_ASPECT = 784 / 1168;
 
 export function screenSize(inches, portrait = false) {
   const diag = inches * 0.0254;
@@ -98,6 +101,7 @@ function base(over = {}) {
     totem: 'left',
     totemOrient: 'portrait',
     sign: 'partner',
+    plate: 'acrylic',
     header: true,
     features: true,
     results: true,
@@ -160,7 +164,10 @@ export function describe(cfg) {
     partner: '우측 입간판은 파트너의 목소리입니다.',
     user: '우측 입간판은 사용자의 목소리입니다.',
   }[cfg.sign];
-  return `${PRESET_LIST[0].blurb} ${sign}`;
+  const plate = cfg.plate === 'print'
+    ? '하드웨어 구성은 벽에 붙인 인쇄물입니다.'
+    : '하드웨어 구성은 아크릴 판입니다.';
+  return `${PRESET_LIST[0].blurb} ${sign} ${plate}`;
 }
 
 function stackColumn(x, faceZ, top, bottom, cfg) {
@@ -183,14 +190,35 @@ function stackColumn(x, faceZ, top, bottom, cfg) {
   }
   const h = top - upperBottom;
   if (h > 0.24) {
-    panels.hardware = {
-      key: 'hardware',
-      x,
-      y: upperBottom + h / 2,
-      z: faceZ,
-      w,
-      h,
-    };
+    const y = upperBottom + h / 2;
+    if (cfg.plate === 'print') {
+      // The poster is narrower than the slot, so the sheet uses the full height and stays centered.
+      let printW = h * HARDWARE_PRINT_ASPECT;
+      let printH = h;
+      if (printW > w) {
+        printW = w;
+        printH = w / HARDWARE_PRINT_ASPECT;
+      }
+      panels.hardware = {
+        key: 'hardware',
+        style: 'print',
+        x,
+        y,
+        z: faceZ,
+        w: printW,
+        h: printH,
+      };
+    } else {
+      panels.hardware = {
+        key: 'hardware',
+        style: 'acrylic',
+        x,
+        y,
+        z: faceZ,
+        w,
+        h,
+      };
+    }
   }
   return { x, w, panels };
 }

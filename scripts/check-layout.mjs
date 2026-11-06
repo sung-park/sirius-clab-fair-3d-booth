@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   CAMERA,
   PRESET_LIST,
+  HARDWARE_PRINT_ASPECT,
   POSTER_ASPECT,
   SIGN,
   SPEC,
@@ -140,6 +141,27 @@ for (const retired of ['care', 'patent', 'off']) {
 const user = computeLayout({ ...PRESET_LIST[0].config, sign: 'user' });
 assert(Math.abs(user.sign.w / user.sign.h - POSTER_ASPECT) < 1e-9, 'user poster keeps the photo ratio');
 assert(Math.abs(user.sign.w - computeLayout(PRESET_LIST[0].config).sign.w) < 1e-9, 'both posters share one width');
+
+const acrylic = computeLayout(PRESET_LIST[0].config);
+const slot = acrylic.column.panels.hardware;
+assert(slot.style === 'acrylic', 'default hardware is the acrylic plate');
+assert(Math.abs(slot.w - (SPEC.module - 0.12)) < 1e-9, 'acrylic plate fills the column');
+const printed = computeLayout({ ...PRESET_LIST[0].config, plate: 'print' });
+const sheet = printed.column.panels.hardware;
+const plaque = printed.column.panels.plaque;
+assert(sheet.style === 'print', 'print hardware style');
+assert(Math.abs(sheet.w / sheet.h - HARDWARE_PRINT_ASPECT) < 1e-9, 'print keeps 784/1168');
+assert(sheet.w <= slot.w + 1e-9 && sheet.h <= slot.h + 1e-9, 'print fits inside the acrylic slot');
+assert(Math.abs(sheet.x - slot.x) < 1e-9 && Math.abs(sheet.y - slot.y) < 1e-9, 'print is centered in the slot');
+assert(sheet.y - sheet.h / 2 > plaque.y + plaque.h / 2, 'print stays above the plaque');
+assert(sheet.y + sheet.h / 2 <= acrylic.contentTop + 1e-9, 'print stays under the header');
+const kept = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, plate: 'print', sign: 'user' }));
+assert(kept && kept.plate === 'print' && kept.sign === 'user', 'plate roundtrip');
+const { plate: _plate, ...legacy } = PRESET_LIST[0].config;
+const missing = decodeConfig(encodeConfig(legacy));
+assert(missing && missing.plate === 'acrylic', 'a hash without plate stays acrylic');
+const unknown = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, plate: 'poster' }));
+assert(unknown && unknown.plate === 'acrylic', 'unknown plate stays acrylic');
 
 if (failed) {
   console.error(`${failed} checks failed`);
