@@ -216,7 +216,15 @@ function labelPill(ctx, x, y, text, size) {
 }
 
 function drawHardware(ctx, w, h) {
-  logoField(ctx, w, h);
+  ctx.fillStyle = '#f4f6f4';
+  ctx.fillRect(0, 0, w, h);
+  // Title band only. Keep it in the logo's blue, and leave the diagram light.
+  const bandH = h * 0.172;
+  const band = ctx.createLinearGradient(0, 0, w * 0.15, bandH);
+  band.addColorStop(0, LOGO_TOP);
+  band.addColorStop(1, LOGO_MID);
+  ctx.fillStyle = band;
+  ctx.fillRect(0, 0, w, bandH);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
@@ -345,7 +353,7 @@ function drawHardware(ctx, w, h) {
     ctx.beginPath();
     ctx.moveTo(cx + s * 0.95, y);
     ctx.lineTo(labelX - 8, y);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+    ctx.strokeStyle = '#b7c7be';
     ctx.lineWidth = 2;
     ctx.stroke();
     labelPill(ctx, labelX, y, text, size);
