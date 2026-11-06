@@ -228,10 +228,37 @@ function buildPrints(add, layout, mats, tex) {
   for (const panel of panels) {
     const map = tex[panel.key];
     if (!map) continue;
-    const plate = panel.key === 'hardware';
+    if (panel.key === 'hardware') {
+      // Shallow plate, not a case. The gap has to clear the shadow bias
+      // or the contact shadow is eaten and the plate still looks glued on.
+      const depth = 0.042;
+      const gap = 0.036;
+      const lip = 0.014;
+      const plateMat = mats.acrylic.clone();
+      plateMat.color.set('#d7dfdb');
+      plateMat.roughness = 0.46;
+      add(
+        rounded(panel.w + lip * 2, panel.h + lip * 2, depth, 0.004, 3),
+        plateMat,
+        panel.x,
+        panel.y,
+        panel.z + gap + depth / 2,
+        { name: 'hardware-plate', disposeMat: plateMat },
+      );
+      const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
+      add(
+        new THREE.PlaneGeometry(panel.w, panel.h),
+        material,
+        panel.x,
+        panel.y,
+        panel.z + gap + depth + 0.001,
+        { cast: false, receive: false, disposeMat: material },
+      );
+      continue;
+    }
     add(
-      rounded(panel.w + 0.016, panel.h + 0.016, plate ? 0.012 : 0.016, 0.002, 2),
-      plate ? mats.acrylic : mats.bezel,
+      rounded(panel.w + 0.016, panel.h + 0.016, 0.016, 0.002, 2),
+      mats.bezel,
       panel.x,
       panel.y,
       panel.z + 0.008,

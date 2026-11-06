@@ -66,7 +66,7 @@ const ENUMS = {
   tv: ['left', 'center', 'right', 'off'],
   totem: ['left', 'right', 'off'],
   totemOrient: ['portrait', 'landscape'],
-  sign: ['care', 'patent', 'off'],
+  sign: ['partner', 'care', 'patent', 'off'],
   cabinet: ['closed', 'open', 'logo'],
   finish: ['white', 'gray', 'green'],
   floor: ['stone', 'wood', 'carpet'],
@@ -80,6 +80,8 @@ const IDENTITY = [
 
 /** One-panel portrait roll-up. 850 × 2000 mm is the usual fair size. */
 export const SIGN = { w: 0.85, h: 2, baseH: 0.07, baseD: 0.22 };
+/** Partner poster file is 667 × 2000. Keep that ratio so faces and the QR stay square. */
+export const PARTNER_ASPECT = 667 / 2000;
 
 export function screenSize(inches, portrait = false) {
   const diag = inches * 0.0254;
@@ -95,7 +97,7 @@ function base(over = {}) {
     tv: 'left',
     totem: 'left',
     totemOrient: 'portrait',
-    sign: 'care',
+    sign: 'partner',
     header: true,
     features: true,
     results: true,
@@ -155,6 +157,7 @@ export function matchPreset(cfg) {
 
 export function describe(cfg) {
   const sign = {
+    partner: '우측 입간판은 파트너의 목소리입니다.',
     care: '우측 입간판은 케어 안입니다.',
     patent: '우측 입간판은 특허 안입니다.',
     off: '입간판은 빼 두었습니다.',
@@ -235,18 +238,24 @@ function graphicWall(cfg, faceZ, top, bottom) {
   });
 }
 
+function signWidth(design) {
+  if (design === 'partner') return SIGN.h * PARTNER_ASPECT;
+  return SIGN.w;
+}
+
 function placeSign(cfg, totem, zFront) {
   if (cfg.sign === 'off') return null;
   let clearance = SPEC.width / 2;
   if (totem && totem.x > 0) clearance = Math.max(clearance, totem.x + totem.w / 2);
-  const x = clearance + 0.18 + SIGN.w / 2;
+  const w = signWidth(cfg.sign);
+  const x = clearance + 0.18 + w / 2;
   // Forward of the front face, so the side view still shows the 0.75 m depth.
   const z = zFront + 0.28;
   return {
     x,
     y: SIGN.baseH + SIGN.h / 2,
     z,
-    w: SIGN.w,
+    w,
     h: SIGN.h,
     d: 0.016,
     design: cfg.sign,

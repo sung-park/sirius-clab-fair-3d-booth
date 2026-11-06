@@ -658,7 +658,7 @@ export function buildTextures(layout, anisotropy) {
     drawTotem(ctx, c.width, c.height, portrait);
     textures.totem = keep(toTexture(c, anisotropy));
   }
-  if (layout.sign) {
+  if (layout.sign && layout.sign.design !== 'partner') {
     const { c, ctx } = canvas(900, 2118);
     if (layout.sign.design === 'patent') drawSignPatent(ctx, c.width, c.height);
     else drawSignCare(ctx, c.width, c.height);

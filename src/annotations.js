@@ -55,7 +55,7 @@ export function createAnnotations(layout, cfg) {
       layout.sign.x + layout.sign.w / 2,
       bottom - 0.08,
       layout.sign.z + 0.16,
-      '0.85 m',
+      `${layout.sign.w.toFixed(2)} m`,
     );
   }
 
@@ -76,7 +76,11 @@ export function createAnnotations(layout, cfg) {
   for (const panel of panels) frames.push([panel, names[panel.key] || panel.key]);
   if (layout.totem) frames.push([layout.totem, '32″ 모니터']);
   if (layout.sign) {
-    const copy = layout.sign.design === 'patent' ? '특허' : '케어';
+    const copy = {
+      partner: '파트너의 목소리',
+      patent: '특허',
+      care: '케어',
+    }[layout.sign.design] || layout.sign.design;
     frames.push([layout.sign, `입간판 · ${copy}`]);
   }
   frames.push([layout.header, '상단 그래픽 2,250 × 300']);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   CAMERA,
   PRESET_LIST,
+  PARTNER_ASPECT,
   SIGN,
   SPEC,
   VIEWS,
@@ -74,7 +75,10 @@ for (const preset of PRESET_LIST) {
     assert(towardBooth > 0.04, `${id} totem gap ${towardBooth}`);
   }
   if (layout.sign) {
-    assert(layout.sign.w === SIGN.w && layout.sign.h === SIGN.h, `${id} sign size ${layout.sign.w}×${layout.sign.h}`);
+    const expectedW = preset.config.sign === 'partner' ? SIGN.h * PARTNER_ASPECT : SIGN.w;
+    assert(Math.abs(layout.sign.w - expectedW) < 1e-9, `${id} sign width ${layout.sign.w}`);
+    assert(layout.sign.h === SIGN.h, `${id} sign height ${layout.sign.h}`);
+    assert(Math.abs(layout.sign.y - (SIGN.baseH + SIGN.h / 2)) < 1e-9, `${id} sign sits on its base`);
     assert(layout.sign.x > 0, `${id} sign is on the visitor's right`);
     assert(layout.sign.x - layout.sign.w / 2 > SPEC.width / 2 + 0.1, `${id} sign clears the booth`);
     assert(layout.sign.z - SIGN.baseD / 2 > layout.zFront + 0.02, `${id} sign base is in front of the booth`);
@@ -130,6 +134,11 @@ assert(round.structure === 'split' && round.tv === 'left' && round.totem === 'le
 assert(lockConfig({ tv: 'right' }).tv === 'left', 'lock keeps the drawing TV');
 const signed = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, sign: 'patent' }));
 assert(signed && signed.sign === 'patent', 'sign design roundtrip');
+const patent = computeLayout({ ...PRESET_LIST[0].config, sign: 'patent' });
+assert(patent.sign.w === SIGN.w, 'care and patent keep the 0.85 m roll-up width');
+const partner = computeLayout(PRESET_LIST[0].config);
+assert(Math.abs(partner.sign.w / partner.sign.h - PARTNER_ASPECT) < 1e-9, 'partner poster keeps the photo ratio');
+assert(partner.sign.w < SIGN.w, 'partner poster is narrower than the roll-up');
 const hidden = computeLayout({ ...PRESET_LIST[0].config, sign: 'off' });
 assert(hidden.sign === null, 'sign can be removed');
 assert(hidden.person.x > 0, 'without the sign the figure returns to the open side');
