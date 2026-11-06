@@ -52,14 +52,25 @@ const camera = new THREE.PerspectiveCamera(
   CAMERA.far,
 );
 
+let viewReady = false;
+
 function fit() {
   const width = viewport.clientWidth;
   const height = viewport.clientHeight;
   if (!width || !height) return;
-  camera.aspect = width / height;
+  const nextAspect = width / height;
+  // A phone URL bar changes the height a little. Only a real rotation, or
+  // hiding the chrome, should pull a preset camera back to its framed pose.
+  const rel = Math.abs(nextAspect - camera.aspect) / Math.max(camera.aspect, 0.2);
+  camera.aspect = nextAspect;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
   labels.setSize(width, height);
+  if (viewReady && rel > 0.18 && currentView !== 'free') goView(currentView, true);
+}
+
+if (window.matchMedia('(max-width: 900px)').matches) {
+  document.querySelector('#panel-more').open = false;
 }
 
 new ResizeObserver(fit).observe(viewport);
@@ -174,6 +185,97 @@ function syncHash() {
   }
 }
 
+// Corners of the person, the booth and the sign. A narrow canvas steps each
+// preset back along its own viewing direction until these points fit.
+// Wide canvases keep the authored pose, so the desktop pictures do not move.
+const FRAME_POINTS = [
+  [-2.3, 1.1, 0.53],
+  [-2.12, 1.72, 0.53],
+  [-1.9, 0.02, 0.53],
+  [1.305, 0.07, 0.66],
+  [1.972, 0.07, 0.66],
+  [1.305, 2.07, 0.66],
+  [1.972, 2.07, 0.66],
+  [-1.125, 0, -0.375],
+  [1.125, 0, -0.375],
+  [-1.125, 2.25, -0.375],
+  [1.125, 2.25, -0.375],
+  [-1.125, 2.25, 0.375],
+  [1.125, 2.25, 0.375],
+  [-1.125, 0, 0.375],
+  [1.125, 0, 0.375],
+].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+const frameCam = new THREE.PerspectiveCamera(CAMERA.fov, 1, CAMERA.near, CAMERA.far);
+const frameVec = new THREE.Vector3();
+
+function frameSpan(position, target, up, fov, aspect) {
+  frameCam.fov = fov;
+  frameCam.aspect = aspect;
+  frameCam.up.copy(up);
+  frameCam.position.copy(position);
+  frameCam.lookAt(target);
+  frameCam.updateProjectionMatrix();
+  frameCam.updateMatrixWorld();
+  let span = 0;
+  for (const point of FRAME_POINTS) {
+    frameVec.copy(point).project(frameCam);
+    span = Math.max(span, Math.abs(frameVec.x), Math.abs(frameVec.y));
+  }
+  return span;
+}
+
+// The plan camera stays under the ceiling and widens its lens instead of
+// climbing through the roof.
+function roomLimit(target, offset) {
+  const dir = offset.clone().normalize();
+  const min = new THREE.Vector3(-11.2, 0.45, -9.2);
+  const max = new THREE.Vector3(11.2, 6.35, 11.2);
+  let limit = Infinity;
+  for (const axis of ['x', 'y', 'z']) {
+    if (Math.abs(dir[axis]) < 1e-5) continue;
+    const bound = dir[axis] > 0 ? max[axis] : min[axis];
+    const reach = (bound - target[axis]) / dir[axis];
+    if (reach > 0.2) limit = Math.min(limit, reach);
+  }
+  return limit;
+}
+
+function framedPose(view) {
+  const target = new THREE.Vector3(view.target[0], view.target[1], view.target[2]);
+  const offset = new THREE.Vector3(view.pos[0], view.pos[1], view.pos[2]).sub(target);
+  const authored = Math.max(offset.length(), 0.001);
+  const aspect = Math.max(camera.aspect || 1, 0.42);
+  let fov = CAMERA.fov;
+  if (aspect < 1.15) {
+    const dir = offset.clone().normalize();
+    const up = new THREE.Vector3(view.up[0], view.up[1], view.up[2]);
+    const cap = Math.max(Math.min(roomLimit(target, offset) - 0.25, 15.5), authored);
+    const at = (distance, lens) => frameSpan(target.clone().addScaledVector(dir, distance), target, up, lens, aspect);
+    const fit = 0.92;
+    if (at(authored, CAMERA.fov) > fit) {
+      let lo = authored;
+      let hi = cap;
+      if (at(hi, CAMERA.fov) > fit) {
+        const base = (CAMERA.fov * Math.PI) / 360;
+        fov = THREE.MathUtils.clamp(
+          THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(base) * (at(hi, CAMERA.fov) / fit))),
+          CAMERA.fov,
+          62,
+        );
+        offset.setLength(hi);
+      } else {
+        for (let i = 0; i < 14; i += 1) {
+          const mid = (lo + hi) / 2;
+          if (at(mid, CAMERA.fov) > fit) lo = mid;
+          else hi = mid;
+        }
+        offset.setLength(hi);
+      }
+    }
+  }
+  return { position: target.clone().add(offset), target, fov };
+}
+
 function goView(name, immediate = false) {
   const view = VIEWS[name] || VIEWS.hero;
   currentView = VIEWS[name] ? name : 'hero';
@@ -181,8 +283,17 @@ function goView(name, immediate = false) {
   controls.minPolarAngle = view.rotate ? 0.12 : 0;
   controls.maxPolarAngle = view.rotate ? Math.PI / 2 - 0.04 : Math.PI;
   camera.up.set(view.up[0], view.up[1], view.up[2]);
-  const toP = new THREE.Vector3(view.pos[0], view.pos[1], view.pos[2]);
-  const toT = new THREE.Vector3(view.target[0], view.target[1], view.target[2]);
+  const pose = framedPose(view);
+  camera.fov = pose.fov;
+  camera.updateProjectionMatrix();
+  const toP = pose.position;
+  const toT = pose.target;
+  if (camera.aspect < 1.15) {
+    const reach = roomLimit(toT, toP.clone().sub(toT));
+    controls.maxDistance = Math.min(16, Math.max(reach - 0.2, 2.4));
+  } else {
+    controls.maxDistance = 16;
+  }
   if (immediate) {
     anim = null;
     camera.position.copy(toP);
@@ -379,6 +490,7 @@ async function boot() {
   else goView(state.view || 'hero', true);
   ui.refresh(state, currentView);
   document.body.classList.add('ready');
+  viewReady = true;
   frame();
 }
 

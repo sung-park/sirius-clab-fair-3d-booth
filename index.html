@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Sirius 과제 부스 · 3D 구성안</title>
     <meta name="description" content="Sirius 과제 부스를 도면 위치 그대로 컨퍼런스 룸에 두고, 입간판 안을 링크로 공유합니다." />
     <link rel="icon" href="./favicon.svg" />
@@ -29,32 +29,36 @@
         <div class="views">
           <button type="button" data-toggle="dims">치수</button>
           <button type="button" data-toggle="markup">마크업</button>
-          <button type="button" data-toggle="person">사람 1.7m</button>
+          <button type="button" data-toggle="person">사람<span class="person-note"> 1.7m</span></button>
         </div>
       </div>
       <div id="toast" hidden></div>
     </div>
     <aside id="panel">
-      <div class="panel-body">
-        <p class="spec">폭 2.25 m · 깊이 0.75 m · 높이 2.25 m<br />선반 높이 1.00 m · 선반 깊이 0.50 m · 상단 그래픽 300 mm<br />55″ 왼쪽 · 32″ 모니터 왼쪽 세로 · 선반 수납</p>
-        <p id="blurb"></p>
-
+      <div id="sign-block">
         <p class="k">입간판 · 우측</p>
         <div class="seg" data-key="sign">
           <button type="button" data-value="partner">파트너</button>
           <button type="button" data-value="user">사용자</button>
         </div>
-
-        <p class="k">논의 메모</p>
-        <textarea id="note" maxlength="140" rows="2" placeholder="이 구성에서 보고 싶은 점을 적으면 링크에 함께 실립니다."></textarea>
-        <p id="note-count" class="count">0/140</p>
       </div>
+      <details id="panel-more" open>
+        <summary>치수와 메모</summary>
+        <div class="panel-body">
+          <p class="spec">폭 2.25 m · 깊이 0.75 m · 높이 2.25 m<br />선반 높이 1.00 m · 선반 깊이 0.50 m · 상단 그래픽 300 mm<br />55″ 왼쪽 · 32″ 모니터 왼쪽 세로 · 선반 수납</p>
+          <p id="blurb"></p>
+          <p class="k">논의 메모</p>
+          <textarea id="note" maxlength="140" rows="2" placeholder="이 구성에서 보고 싶은 점을 적으면 링크에 함께 실립니다."></textarea>
+          <p id="note-count" class="count">0/140</p>
+        </div>
+      </details>
       <div class="actions">
         <button type="button" id="copy-link" class="primary">이 구성 링크 복사</button>
         <button type="button" id="open-drawing">기준 도면</button>
         <button type="button" id="reset">도면 기본안</button>
       </div>
-      <p class="hint">드래그 회전 · 스크롤 줌 · 우클릭 이동<br />1–5 시점 · D 치수 · M 도면 마크업 · H 패널 숨김<br />55″는 16:9 실치수 약 1.22 × 0.69 m. 화면의 숫자는 예시입니다.</p>
+      <p class="hint hint-desk">드래그 회전 · 스크롤 줌 · 우클릭 이동<br />1–5 시점 · D 치수 · M 도면 마크업 · H 패널 숨김<br />55″는 16:9 실치수 약 1.22 × 0.69 m. 화면의 숫자는 예시입니다.</p>
+      <p class="hint hint-touch">한 손가락으로 돌리고, 두 손가락으로 확대하고 이동합니다.</p>
     </aside>
 
     <div id="lightbox" hidden>
