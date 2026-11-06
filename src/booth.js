@@ -256,12 +256,15 @@ function buildPrints(add, layout, mats, tex) {
       );
       continue;
     }
+    const bezel = panel.key === 'plaque' ? mats.bezel.clone() : mats.bezel;
+    if (panel.key === 'plaque') bezel.color.set('#2c4d86');
     add(
       rounded(panel.w + 0.016, panel.h + 0.016, 0.016, 0.002, 2),
-      mats.bezel,
+      bezel,
       panel.x,
       panel.y,
       panel.z + 0.008,
+      panel.key === 'plaque' ? { disposeMat: bezel } : {},
     );
     const material = new THREE.MeshBasicMaterial({ map });
     add(

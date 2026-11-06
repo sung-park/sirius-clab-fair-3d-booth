@@ -4,6 +4,19 @@ const FONT = 'Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 const GREEN = '#115945';
 const INK = '#14211c';
 const PAPER = '#fbfaf6';
+// Sampled from the Sirius app icon on the header: sky blue into periwinkle.
+const LOGO_TOP = '#4eadd6';
+const LOGO_MID = '#6794c8';
+const LOGO_BOTTOM = '#8a79b6';
+
+function logoField(ctx, w, h) {
+  const field = ctx.createLinearGradient(0, 0, w * 0.2, h);
+  field.addColorStop(0, LOGO_TOP);
+  field.addColorStop(0.55, LOGO_MID);
+  field.addColorStop(1, LOGO_BOTTOM);
+  ctx.fillStyle = field;
+  ctx.fillRect(0, 0, w, h);
+}
 
 function canvas(w, h) {
   const c = document.createElement('canvas');
@@ -203,18 +216,15 @@ function labelPill(ctx, x, y, text, size) {
 }
 
 function drawHardware(ctx, w, h) {
-  ctx.fillStyle = '#f4f6f4';
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = GREEN;
-  ctx.fillRect(0, 0, w, Math.max(4, h * 0.008));
+  logoField(ctx, w, h);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#12241c';
+  ctx.fillStyle = '#ffffff';
   ctx.font = `650 ${Math.floor(w * 0.044)}px ${FONT}`;
   ctx.fillText('하루 종일 착용하는', w / 2, h * 0.058);
   ctx.fillText('우리 반려견 첫번째 트래커', w / 2, h * 0.108);
-  ctx.fillStyle = GREEN;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.86)';
   ctx.font = `600 ${Math.floor(w * 0.028)}px ${FONT}`;
   ctx.fillText('하드웨어 구성', w / 2, h * 0.15);
 
@@ -335,7 +345,7 @@ function drawHardware(ctx, w, h) {
     ctx.beginPath();
     ctx.moveTo(cx + s * 0.95, y);
     ctx.lineTo(labelX - 8, y);
-    ctx.strokeStyle = '#b7c7be';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
     ctx.lineWidth = 2;
     ctx.stroke();
     labelPill(ctx, labelX, y, text, size);
@@ -413,14 +423,13 @@ function drawResults(ctx, w, h) {
 }
 
 function drawPlaque(ctx, w, h) {
-  ctx.fillStyle = '#1b2420';
-  ctx.fillRect(0, 0, w, h);
+  logoField(ctx, w, h);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#f4faf6';
+  ctx.fillStyle = '#ffffff';
   ctx.font = `650 ${Math.floor(h * 0.38)}px ${FONT}`;
   ctx.fillText('시료 비교 전시', w / 2, h * 0.38);
-  ctx.fillStyle = '#9dbaae';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.86)';
   ctx.font = `500 ${Math.floor(h * 0.22)}px ${FONT}`;
   ctx.fillText('Sirius 13g      ·      비교 시료', w / 2, h * 0.72);
   ctx.textAlign = 'left';
