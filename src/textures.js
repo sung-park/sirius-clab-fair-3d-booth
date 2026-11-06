@@ -7,16 +7,8 @@ const PAPER = '#fbfaf6';
 // Sampled from the Sirius app icon on the header: sky blue into periwinkle.
 const LOGO_TOP = '#4eadd6';
 const LOGO_MID = '#6794c8';
-const LOGO_BOTTOM = '#8a79b6';
-
-function logoField(ctx, w, h) {
-  const field = ctx.createLinearGradient(0, 0, w * 0.2, h);
-  field.addColorStop(0, LOGO_TOP);
-  field.addColorStop(0.55, LOGO_MID);
-  field.addColorStop(1, LOGO_BOTTOM);
-  ctx.fillStyle = field;
-  ctx.fillRect(0, 0, w, h);
-}
+// Flat navy from the printed hardware poster header (left margin, y 6–180).
+const HEAD_BLUE = '#002f7f';
 
 function canvas(w, h) {
   const c = document.createElement('canvas');
@@ -431,7 +423,8 @@ function drawResults(ctx, w, h) {
 }
 
 function drawPlaque(ctx, w, h) {
-  logoField(ctx, w, h);
+  ctx.fillStyle = HEAD_BLUE;
+  ctx.fillRect(0, 0, w, h);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff';
@@ -442,6 +435,51 @@ function drawPlaque(ctx, w, h) {
   ctx.fillText('Sirius 13g      ·      비교 시료', w / 2, h * 0.72);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
+}
+
+// Poster header ends at row 205 of 1168. Below that is the diagram, unstretched.
+const PRINT_DIAGRAM_TOP = 206 / 1168;
+
+function drawHardwarePrint(ctx, w, h, image) {
+  ctx.fillStyle = '#f8fcff';
+  ctx.fillRect(0, 0, w, h);
+  const bandH = Math.round(h * 0.18);
+  ctx.fillStyle = HEAD_BLUE;
+  ctx.fillRect(0, 0, w, bandH);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  const title = '하드웨어 구성';
+  let size = Math.floor(bandH * 0.62);
+  ctx.font = `700 ${size}px ${FONT}`;
+  const maxW = w * 0.9;
+  while (size > 24 && ctx.measureText(title).width > maxW) {
+    size -= 2;
+    ctx.font = `700 ${size}px ${FONT}`;
+  }
+  ctx.fillText(title, w / 2, bandH * 0.52);
+
+  const srcW = image.naturalWidth || image.width;
+  const srcH = image.naturalHeight || image.height;
+  const sy = Math.round(srcH * PRINT_DIAGRAM_TOP);
+  const sh = srcH - sy;
+  const availH = h - bandH;
+  const scale = Math.min(w / srcW, availH / sh);
+  const dw = srcW * scale;
+  const dh = sh * scale;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image, 0, sy, srcW, sh, (w - dw) / 2, bandH + (availH - dh) / 2, dw, dh);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+export function composeHardwarePrint(image, panel, anisotropy) {
+  const height = 1600;
+  const { c, ctx } = canvas(Math.round(height * panel.w / panel.h), height);
+  drawHardwarePrint(ctx, c.width, c.height, image);
+  return toTexture(c, anisotropy);
 }
 
 function drawVision(ctx, w, h) {

@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createBooth } from './booth.js';
 import { createAnnotations } from './annotations.js';
 import { createMaterials, applyFinish } from './materials.js';
-import { buildTextures } from './textures.js';
+import { buildTextures, composeHardwarePrint } from './textures.js';
 import { createConferenceRoom } from './room.js';
 import { mountUI } from './ui.js';
 import {
@@ -172,7 +172,19 @@ function rebuild() {
   const tex = buildTextures(layout, renderer.capabilities.getMaxAnisotropy());
   tex.header = headerTexture;
   tex.sign = layout.sign?.design === 'user' ? userTexture : partnerTexture;
-  if (state.plate === 'print' && hardwareTexture) tex.hardware = hardwareTexture;
+  if (state.plate === 'print' && hardwareTexture?.image && layout.column?.panels.hardware) {
+    const printTex = composeHardwarePrint(
+      hardwareTexture.image,
+      layout.column.panels.hardware,
+      renderer.capabilities.getMaxAnisotropy(),
+    );
+    const prevDispose = tex.dispose;
+    tex.dispose = () => {
+      printTex.dispose();
+      prevDispose();
+    };
+    tex.hardware = printTex;
+  }
   booth = createBooth(state, layout, mats, tex);
   booth.add(createAnnotations(layout, state));
   scene.add(booth);

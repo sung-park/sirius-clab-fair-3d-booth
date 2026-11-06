@@ -83,8 +83,6 @@ const IDENTITY = [
 export const SIGN = { w: 0.85, h: 2, baseH: 0.07, baseD: 0.22 };
 /** Partner and user posters are both 667 × 2000. Keep that ratio so type and the QR stay square. */
 export const POSTER_ASPECT = 667 / 2000;
-/** Printed hardware sheet, 784 × 1168. Contain it in the column; do not stretch the artwork. */
-export const HARDWARE_PRINT_ASPECT = 784 / 1168;
 
 export function screenSize(inches, portrait = false) {
   const diag = inches * 0.0254;
@@ -191,34 +189,17 @@ function stackColumn(x, faceZ, top, bottom, cfg) {
   const h = top - upperBottom;
   if (h > 0.24) {
     const y = upperBottom + h / 2;
-    if (cfg.plate === 'print') {
-      // The poster is narrower than the slot, so the sheet uses the full height and stays centered.
-      let printW = h * HARDWARE_PRINT_ASPECT;
-      let printH = h;
-      if (printW > w) {
-        printW = w;
-        printH = w / HARDWARE_PRINT_ASPECT;
-      }
-      panels.hardware = {
-        key: 'hardware',
-        style: 'print',
-        x,
-        y,
-        z: faceZ,
-        w: printW,
-        h: printH,
-      };
-    } else {
-      panels.hardware = {
-        key: 'hardware',
-        style: 'acrylic',
-        x,
-        y,
-        z: faceZ,
-        w,
-        h,
-      };
-    }
+    // Both styles fill the column so the sheet lines up with the plaque.
+    // The printed diagram keeps its own ratio inside that rectangle.
+    panels.hardware = {
+      key: 'hardware',
+      style: cfg.plate === 'print' ? 'print' : 'acrylic',
+      x,
+      y,
+      z: faceZ,
+      w,
+      h,
+    };
   }
   return { x, w, panels };
 }

@@ -285,7 +285,7 @@ function buildPrints(add, layout, mats, tex) {
       continue;
     }
     const bezel = panel.key === 'plaque' ? mats.bezel.clone() : mats.bezel;
-    if (panel.key === 'plaque') bezel.color.set('#2c4d86');
+    if (panel.key === 'plaque') bezel.color.set('#001848');
     add(
       rounded(panel.w + 0.016, panel.h + 0.016, 0.016, 0.002, 2),
       bezel,

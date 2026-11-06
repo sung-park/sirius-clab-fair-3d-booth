@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import {
   CAMERA,
   PRESET_LIST,
-  HARDWARE_PRINT_ASPECT,
   POSTER_ASPECT,
   SIGN,
   SPEC,
@@ -150,8 +149,8 @@ const printed = computeLayout({ ...PRESET_LIST[0].config, plate: 'print' });
 const sheet = printed.column.panels.hardware;
 const plaque = printed.column.panels.plaque;
 assert(sheet.style === 'print', 'print hardware style');
-assert(Math.abs(sheet.w / sheet.h - HARDWARE_PRINT_ASPECT) < 1e-9, 'print keeps 784/1168');
-assert(sheet.w <= slot.w + 1e-9 && sheet.h <= slot.h + 1e-9, 'print fits inside the acrylic slot');
+assert(Math.abs(sheet.w - slot.w) < 1e-9 && Math.abs(sheet.h - slot.h) < 1e-9, 'print fills the same slot as the acrylic plate');
+assert(Math.abs(sheet.w - plaque.w) < 1e-9, 'print width matches the plaque');
 assert(Math.abs(sheet.x - slot.x) < 1e-9 && Math.abs(sheet.y - slot.y) < 1e-9, 'print is centered in the slot');
 assert(sheet.y - sheet.h / 2 > plaque.y + plaque.h / 2, 'print stays above the plaque');
 assert(sheet.y + sheet.h / 2 <= acrylic.contentTop + 1e-9, 'print stays under the header');
