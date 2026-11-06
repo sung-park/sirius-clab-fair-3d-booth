@@ -185,6 +185,165 @@ function drawTotem(ctx, w, h, portrait) {
   ctx.textAlign = 'left';
 }
 
+function labelPill(ctx, x, y, text, size) {
+  ctx.font = `600 ${size}px ${FONT}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const width = ctx.measureText(text).width + size * 1.1;
+  const height = size * 1.65;
+  roundRect(ctx, x, y - height / 2, width, height, height / 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#c5d4cb';
+  ctx.lineWidth = Math.max(1.5, size * 0.07);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1b2a23';
+  ctx.fillText(text, x + size * 0.55, y);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawHardware(ctx, w, h) {
+  ctx.fillStyle = '#f4f6f4';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = GREEN;
+  ctx.fillRect(0, 0, w, Math.max(4, h * 0.008));
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#12241c';
+  ctx.font = `650 ${Math.floor(w * 0.044)}px ${FONT}`;
+  ctx.fillText('하루 종일 착용하는', w / 2, h * 0.058);
+  ctx.fillText('우리 반려견 첫번째 트래커', w / 2, h * 0.108);
+  ctx.fillStyle = GREEN;
+  ctx.font = `600 ${Math.floor(w * 0.028)}px ${FONT}`;
+  ctx.fillText('하드웨어 구성', w / 2, h * 0.15);
+
+  const cx = w * 0.3;
+  const s = h * 0.105;
+  const rows = [0.26, 0.385, 0.52, 0.65, 0.775, 0.9];
+
+  const oval = (x, y, rx, ry, fill, stroke) => {
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  };
+
+  oval(cx, h * rows[0], s * 0.78, s * 0.46, '#fbfbfb', '#d3dcd6');
+  roundRect(ctx, cx - s * 0.2, h * rows[0] - s * 0.7, s * 0.4, s * 0.36, s * 0.08);
+  ctx.fillStyle = '#f3f6f4';
+  ctx.fill();
+  ctx.strokeStyle = '#d3dcd6';
+  ctx.stroke();
+  ctx.fillStyle = '#e3ebe6';
+  roundRect(ctx, cx - s * 0.09, h * rows[0] - s * 0.56, s * 0.18, s * 0.14, 3);
+  ctx.fill();
+
+  const buzzerX = cx - s * 0.42;
+  ctx.fillStyle = '#1c1e1d';
+  ctx.beginPath();
+  ctx.arc(buzzerX, h * rows[1], s * 0.24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#3c403c';
+  ctx.beginPath();
+  ctx.arc(buzzerX, h * rows[1], s * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#d4b46a';
+  ctx.fillRect(buzzerX + s * 0.2, h * rows[1] - s * 0.05, s * 0.16, s * 0.1);
+
+  const cellX = cx + s * 0.48;
+  roundRect(ctx, cellX - s * 0.32, h * rows[1] - s * 0.18, s * 0.64, s * 0.36, s * 0.08);
+  ctx.fillStyle = '#fbfbfb';
+  ctx.strokeStyle = '#d0d8d3';
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#d4b46a';
+  ctx.fillRect(cellX + s * 0.2, h * rows[1] - s * 0.1, s * 0.08, s * 0.2);
+
+  roundRect(ctx, cx - s * 0.95, h * rows[2] - s * 0.4, s * 1.9, s * 0.8, s * 0.26);
+  ctx.fillStyle = '#1c6b46';
+  ctx.fill();
+  ctx.strokeStyle = '#145338';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#141816';
+  roundRect(ctx, cx - s * 0.24, h * rows[2] - s * 0.18, s * 0.48, s * 0.36, 4);
+  ctx.fill();
+  ctx.fillStyle = '#e7fff4';
+  ctx.font = `650 ${Math.floor(s * 0.16)}px ${FONT}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('MCU', cx, h * rows[2]);
+  ctx.fillStyle = '#e1c16e';
+  for (let i = -2; i <= 2; i += 1) {
+    ctx.fillRect(cx - s * 0.78, h * rows[2] + i * s * 0.12 - 2, s * 0.07, 4);
+    ctx.fillRect(cx + s * 0.71, h * rows[2] + i * s * 0.12 - 2, s * 0.07, 4);
+  }
+
+  roundRect(ctx, cx - s * 0.38, h * rows[3] - s * 0.38, s * 0.76, s * 0.76, s * 0.1);
+  ctx.fillStyle = '#237a50';
+  ctx.fill();
+  ctx.strokeStyle = '#d9f5e8';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, h * rows[3], s * 0.1, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(17, 89, 69, 0.45)';
+  ctx.lineWidth = 3;
+  for (const radius of [0.32, 0.46, 0.6]) {
+    ctx.beginPath();
+    ctx.arc(cx, h * rows[3], s * radius, -0.7, 0.7);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, h * rows[3], s * radius, Math.PI - 0.7, Math.PI + 0.7);
+    ctx.stroke();
+  }
+
+  roundRect(ctx, cx - s * 0.72, h * rows[4] - s * 0.3, s * 1.44, s * 0.6, s * 0.1);
+  ctx.fillStyle = '#fbfbfb';
+  ctx.strokeStyle = '#cfd8d3';
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1b2a23';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `600 ${Math.floor(s * 0.15)}px ${FONT}`;
+  ctx.fillText('보호자 연락처', cx, h * rows[4] - s * 0.08);
+  ctx.font = `650 ${Math.floor(s * 0.16)}px ${FONT}`;
+  ctx.fillText('01012345678', cx, h * rows[4] + s * 0.12);
+
+  oval(cx, h * rows[5], s * 0.82, s * 0.48, '#fbfbfb', '#d3dcd6');
+  oval(cx, h * rows[5], s * 0.4, s * 0.22, '#f4f6f4', '#d3dcd6');
+
+  const labels = [
+    '후면 케이스 · 클립',
+    '부저 · 배터리',
+    '메인 보드 · MCU',
+    '생체 레이더 센서',
+    '초저전력 전자종이',
+    '전면 하우징',
+  ];
+  const labelX = w * 0.54;
+  const size = Math.floor(w * 0.026);
+  labels.forEach((text, index) => {
+    const y = h * rows[index];
+    ctx.beginPath();
+    ctx.moveTo(cx + s * 0.95, y);
+    ctx.lineTo(labelX - 8, y);
+    ctx.strokeStyle = '#b7c7be';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    labelPill(ctx, labelX, y, text, size);
+  });
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
 function drawFeature(ctx, w, h) {
   ctx.fillStyle = GREEN;
   ctx.fillRect(0, 0, w, h);
@@ -510,9 +669,24 @@ export function buildTextures(layout, anisotropy) {
   if (layout.column) panels.push(...Object.values(layout.column.panels));
   if (layout.wings) panels.push(...Object.values(layout.wings));
   if (layout.posters) panels.push(...layout.posters);
-  const drawers = { feature: drawFeature, results: drawResults, plaque: drawPlaque, vision: drawVision, product: drawProduct };
+  const drawers = {
+    feature: drawFeature,
+    results: drawResults,
+    plaque: drawPlaque,
+    vision: drawVision,
+    product: drawProduct,
+    hardware: drawHardware,
+  };
   for (const panel of panels) {
-    if (!textures[panel.key]) textures[panel.key] = paint(drawers[panel.key], panel.w, panel.h);
+    if (textures[panel.key]) continue;
+    if (panel.key === 'hardware') {
+      const height = 1500;
+      const { c, ctx } = canvas(Math.round(height * panel.w / panel.h), height);
+      drawHardware(ctx, c.width, c.height);
+      textures.hardware = keep(toTexture(c, anisotropy));
+    } else if (drawers[panel.key]) {
+      textures[panel.key] = paint(drawers[panel.key], panel.w, panel.h);
+    }
   }
   if (layout.column || true) {
     const { c, ctx } = canvas(640, 880);

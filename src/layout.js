@@ -137,7 +137,7 @@ export const PRESET_LIST = [
   {
     id: 'drawing',
     name: '도면 기본안',
-    blurb: '도면 위치 그대로입니다. 화면은 뒤쪽 월, 앞쪽 선반 깊이는 0.50m, 55″는 왼쪽 두 모듈, 32″ 모니터는 왼쪽 세로입니다. 오른쪽 입간판만 두 안으로 바꿉니다.',
+    blurb: '도면 위치 그대로입니다. 화면은 뒤쪽 월, 앞쪽 선반 깊이는 0.50m, 55″는 왼쪽 두 모듈, 32″ 모니터는 왼쪽 세로입니다. 오른쪽 벽은 트래커 하드웨어 구성이고, 그 아래는 시료 비교입니다.',
     config: base(),
   },
 ];
@@ -164,34 +164,31 @@ export function describe(cfg) {
 
 function stackColumn(x, faceZ, top, bottom, cfg) {
   const w = SPEC.module - 0.12;
-  const gap = 0.026;
+  const gap = 0.028;
   const panels = {};
   const plaqueH = 0.12;
-  const upperBottom = bottom + (cfg.samples ? plaqueH + gap : 0);
-  const upper = [];
-  if (cfg.features) upper.push({ key: 'feature', h: 0.2 });
-  if (cfg.results) upper.push({ key: 'results', h: null });
-
-  let cursor = top;
-  if (upper.length) {
-    const fixed = upper.reduce((sum, item) => sum + (item.h || 0), 0);
-    const gaps = gap * Math.max(0, upper.length - 1);
-    const flex = cursor - upperBottom - fixed - gaps;
-    for (const item of upper) {
-      const h = item.h == null ? Math.max(0.2, flex) : item.h;
-      cursor -= h / 2;
-      panels[item.key] = { key: item.key, x, y: cursor, z: faceZ, w, h };
-      cursor -= h / 2 + gap;
-    }
-  }
+  const plaqueLift = 0.055;
+  let upperBottom = bottom;
   if (cfg.samples) {
     panels.plaque = {
       key: 'plaque',
       x,
-      y: bottom + plaqueH / 2,
+      y: bottom + plaqueLift + plaqueH / 2,
       z: faceZ,
       w,
       h: plaqueH,
+    };
+    upperBottom = panels.plaque.y + plaqueH / 2 + gap;
+  }
+  const h = top - upperBottom;
+  if (h > 0.24) {
+    panels.hardware = {
+      key: 'hardware',
+      x,
+      y: upperBottom + h / 2,
+      z: faceZ,
+      w,
+      h,
     };
   }
   return { x, w, panels };

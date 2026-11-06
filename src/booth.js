@@ -228,12 +228,13 @@ function buildPrints(add, layout, mats, tex) {
   for (const panel of panels) {
     const map = tex[panel.key];
     if (!map) continue;
+    const plate = panel.key === 'hardware';
     add(
-      rounded(panel.w + 0.016, panel.h + 0.016, 0.016, 0.002, 2),
-      mats.bezel,
+      rounded(panel.w + 0.016, panel.h + 0.016, plate ? 0.012 : 0.016, 0.002, 2),
+      plate ? mats.acrylic : mats.bezel,
       panel.x,
       panel.y,
-      panel.z + 0.009,
+      panel.z + 0.008,
     );
     const material = new THREE.MeshBasicMaterial({ map });
     add(

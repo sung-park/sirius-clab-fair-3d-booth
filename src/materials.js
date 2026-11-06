@@ -49,6 +49,7 @@ export function createMaterials() {
       clearcoatRoughness: 0.35,
     }),
     bezel: standard('#161616', 0.4, 0.16),
+    acrylic: standard('#f7faf8', 0.18, 0.02),
     tray: standard('#1a1c1b', 0.4, 0.14),
     device: standard('#f7f7f4', 0.3, 0.08),
     deviceAlt: standard('#d7dbdf', 0.38, 0.12),
