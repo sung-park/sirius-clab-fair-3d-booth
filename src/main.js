@@ -494,7 +494,7 @@ async function boot() {
     texture.anisotropy = anisotropy;
     userTexture = texture;
   } catch {
-    toast('사용자 포스터 이미지를 불러오지 못했습니다.');
+    toast('Fair행사 포스터 이미지를 불러오지 못했습니다.');
   }
   try {
     const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/hardware-print.png`);

@@ -75,7 +75,9 @@ for (const preset of PRESET_LIST) {
     assert(towardBooth > 0.04, `${id} totem gap ${towardBooth}`);
   }
   if (layout.sign) {
-    assert(Math.abs(layout.sign.w - SIGN.h * POSTER_ASPECT) < 1e-9, `${id} sign width ${layout.sign.w}`);
+    const aspect = POSTER_ASPECT[layout.sign.design];
+    assert(aspect > 0, `${id} sign aspect`);
+    assert(Math.abs(layout.sign.w - SIGN.h * aspect) < 1e-9, `${id} sign width ${layout.sign.w}`);
     assert(layout.sign.h === SIGN.h, `${id} sign height ${layout.sign.h}`);
     assert(Math.abs(layout.sign.y - (SIGN.baseH + SIGN.h / 2)) < 1e-9, `${id} sign sits on its base`);
     assert(layout.sign.x > 0, `${id} sign is on the visitor's right`);
@@ -138,8 +140,8 @@ for (const retired of ['care', 'patent', 'off']) {
   assert(dropped && dropped.sign === 'partner', `${retired} falls back to the partner poster`);
 }
 const user = computeLayout({ ...PRESET_LIST[0].config, sign: 'user' });
-assert(Math.abs(user.sign.w / user.sign.h - POSTER_ASPECT) < 1e-9, 'user poster keeps the photo ratio');
-assert(Math.abs(user.sign.w - computeLayout(PRESET_LIST[0].config).sign.w) < 1e-9, 'both posters share one width');
+assert(Math.abs(user.sign.w / user.sign.h - POSTER_ASPECT.user) < 1e-9, 'fair poster keeps the photo ratio');
+assert(Math.abs(computeLayout(PRESET_LIST[0].config).sign.w / SIGN.h - POSTER_ASPECT.partner) < 1e-9, 'partner poster keeps its photo ratio');
 
 const acrylic = computeLayout(PRESET_LIST[0].config);
 const slot = acrylic.column.panels.hardware;

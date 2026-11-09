@@ -81,8 +81,11 @@ const IDENTITY = [
 
 /** Portrait roll-up. The print is 2.00 m tall; width follows the poster file. */
 export const SIGN = { w: 0.85, h: 2, baseH: 0.07, baseD: 0.22 };
-/** Partner and user posters are both 667 × 2000. Keep that ratio so type and the QR stay square. */
-export const POSTER_ASPECT = 667 / 2000;
+/** Height is 2.00 m. Width follows each file so type and photos stay square. */
+export const POSTER_ASPECT = {
+  partner: 667 / 2000,
+  user: 686 / 2000,
+};
 
 export function screenSize(inches, portrait = false) {
   const diag = inches * 0.0254;
@@ -160,7 +163,7 @@ export function matchPreset(cfg) {
 export function describe(cfg) {
   const sign = {
     partner: '우측 입간판은 파트너의 목소리입니다.',
-    user: '우측 입간판은 사용자의 목소리입니다.',
+    user: '우측 입간판은 Fair행사용입니다.',
   }[cfg.sign];
   const plate = cfg.plate === 'print'
     ? '하드웨어 구성은 벽에 붙인 인쇄물입니다.'
@@ -248,7 +251,7 @@ function graphicWall(cfg, faceZ, top, bottom) {
 function placeSign(cfg, totem, zFront) {
   let clearance = SPEC.width / 2;
   if (totem && totem.x > 0) clearance = Math.max(clearance, totem.x + totem.w / 2);
-  const w = SIGN.h * POSTER_ASPECT;
+  const w = SIGN.h * (POSTER_ASPECT[cfg.sign] || POSTER_ASPECT.partner);
   const x = clearance + 0.18 + w / 2;
   // Forward of the front face, so the side view still shows the 0.75 m depth.
   const z = zFront + 0.28;
