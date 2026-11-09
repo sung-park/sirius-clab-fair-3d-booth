@@ -162,7 +162,7 @@ export function matchPreset(cfg) {
 
 export function describe(cfg) {
   const sign = {
-    partner: '우측 입간판은 파트너의 목소리입니다.',
+    partner: '우측 입간판은 경영진 보고입니다.',
     user: '우측 입간판은 Fair행사용입니다.',
   }[cfg.sign];
   const plate = cfg.plate === 'print'

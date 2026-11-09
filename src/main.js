@@ -486,7 +486,7 @@ async function boot() {
     texture.anisotropy = anisotropy;
     partnerTexture = texture;
   } catch {
-    toast('파트너 포스터 이미지를 불러오지 못했습니다.');
+    toast('경영진 보고 포스터 이미지를 불러오지 못했습니다.');
   }
   try {
     const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/user-voices.jpg`);

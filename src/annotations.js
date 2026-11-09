@@ -77,7 +77,7 @@ export function createAnnotations(layout, cfg) {
   if (layout.totem) frames.push([layout.totem, '32″ 모니터']);
   if (layout.sign) {
     const copy = {
-      partner: '파트너의 목소리',
+      partner: '경영진 보고',
       user: 'Fair행사용',
     }[layout.sign.design] || layout.sign.design;
     frames.push([layout.sign, `입간판 · ${copy}`]);
