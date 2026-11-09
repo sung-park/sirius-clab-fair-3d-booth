@@ -24,8 +24,6 @@ export const SPEC = {
 };
 
 export const HEADER_ASPECT = 1784 / 234;
-export const SAMPLE_DX = [-0.12, 0.12];
-
 export const CAMERA = { fov: 36, near: 0.08, far: 40 };
 
 export const VIEWS = {
@@ -144,7 +142,7 @@ export const PRESET_LIST = [
   {
     id: 'drawing',
     name: '도면 기본안',
-    blurb: '도면 위치 그대로입니다. 화면은 뒤쪽 월, 앞쪽 선반 깊이는 0.50m, 55″는 왼쪽 두 모듈, 32″ 모니터는 왼쪽 세로입니다. 오른쪽 벽은 트래커 하드웨어 구성이고, 그 아래는 시료 비교입니다.',
+    blurb: '도면 위치 그대로입니다. 화면은 뒤쪽 월, 앞쪽 선반 깊이는 0.50m, 55″는 왼쪽 두 모듈, 32″ 모니터는 왼쪽 세로입니다. 오른쪽 벽 상단은 반려견 착용 사진 70 cm이고, 선반에는 하드웨어 아크릴이 있습니다.',
     config: base(),
   },
 ];
@@ -165,46 +163,31 @@ export function describe(cfg) {
     partner: '우측 입간판은 경영진 보고입니다.',
     user: '우측 입간판은 Fair행사용입니다.',
   }[cfg.sign];
-  const plate = cfg.plate === 'print'
-    ? '하드웨어 구성은 벽에 붙인 인쇄물입니다.'
-    : '하드웨어 구성은 아크릴 판입니다.';
-  return `${PRESET_LIST[0].blurb} ${sign} ${plate}`;
+  return `${PRESET_LIST[0].blurb} ${sign}`;
 }
 
-function stackColumn(x, faceZ, top, bottom, cfg) {
-  const w = SPEC.module - 0.12;
-  const gap = 0.028;
-  const panels = {};
-  const plaqueH = 0.12;
-  const plaqueLift = 0.055;
-  let upperBottom = bottom;
-  if (cfg.samples) {
-    panels.plaque = {
-      key: 'plaque',
-      x,
-      y: bottom + plaqueLift + plaqueH / 2,
-      z: faceZ,
-      w,
-      h: plaqueH,
-    };
-    upperBottom = panels.plaque.y + plaqueH / 2 + gap;
-  }
-  const h = top - upperBottom;
-  if (h > 0.24) {
-    const y = upperBottom + h / 2;
-    // Both styles fill the column so the sheet lines up with the plaque.
-    // The printed diagram keeps its own ratio inside that rectangle.
-    panels.hardware = {
-      key: 'hardware',
-      style: cfg.plate === 'print' ? 'print' : 'acrylic',
-      x,
-      y,
-      z: faceZ,
-      w,
-      h,
-    };
-  }
-  return { x, w, panels };
+const DOG_PHOTO = 0.7;
+const STAND_H = 0.184;
+
+function stackColumn(x, faceZ) {
+  const photoBottom = SPEC.shelfH + STAND_H + 0.036;
+  const photoTopLimit = SPEC.height - SPEC.headerH - 0.02;
+  let y = photoBottom + DOG_PHOTO / 2;
+  if (y + DOG_PHOTO / 2 > photoTopLimit) y = photoTopLimit - DOG_PHOTO / 2;
+  return {
+    x,
+    w: DOG_PHOTO,
+    panels: {
+      dogs: {
+        key: 'dogs',
+        x,
+        y,
+        z: faceZ,
+        w: DOG_PHOTO,
+        h: DOG_PHOTO,
+      },
+    },
+  };
 }
 
 function sideCards(cfg, tv, faceZ) {
@@ -352,36 +335,19 @@ export function computeLayout(cfg) {
     const x = cfg.tv === 'left'
       ? SPEC.width / 2 - SPEC.module / 2
       : -SPEC.width / 2 + SPEC.module / 2;
-    column = stackColumn(x, faceZ, contentTop, contentBottom, cfg);
+    column = stackColumn(x, faceZ);
   }
 
   const wings = cfg.tv === 'center' ? sideCards(cfg, tv, faceZ) : null;
   const posters = cfg.tv === 'off' ? graphicWall(cfg, faceZ, contentTop, contentBottom) : null;
 
-  let tray = null;
-  if (cfg.samples) {
-    const w = 0.5;
-    const d = 0.24;
-    let x = 0;
-    if (cfg.tv === 'left') x = SPEC.module;
-    else if (cfg.tv === 'right') x = -SPEC.module;
-    const limit = SPEC.width / 2 - w / 2 - 0.04;
-    x = Math.max(-limit, Math.min(limit, x));
-    const z = flush ? zFront + d / 2 : faceZ + shelfD * 0.62;
-    tray = {
-      x,
-      y: SPEC.shelfH,
-      z,
-      w,
-      d,
-      h: 0.014,
-      flush,
-      devices: [
-        { dx: SAMPLE_DX[0], label: 'Sirius 13g' },
-        { dx: SAMPLE_DX[1], label: '비교 시료' },
-      ],
-    };
-  }
+  const stand = column ? {
+    x: column.x,
+    y: SPEC.shelfH,
+    z: faceZ + shelfD / 2 + 0.004,
+    w: 0.5,
+    d: 0.5,
+  } : null;
 
   let totem = null;
   if (cfg.totem !== 'off') {
@@ -423,7 +389,7 @@ export function computeLayout(cfg) {
     column,
     wings,
     posters,
-    tray,
+    stand,
     totem,
     sign,
     person,

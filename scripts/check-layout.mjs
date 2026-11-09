@@ -91,9 +91,10 @@ for (const preset of PRESET_LIST) {
   } else {
     assert(false, `${id} sign is always present`);
   }
-  if (!layout.flush && layout.tray) {
-    assert(layout.tray.z - layout.tray.d / 2 >= layout.faceZ - 0.02, `${id} tray back`);
-    assert(layout.tray.z + layout.tray.d / 2 <= layout.zFront + 0.02, `${id} tray front`);
+  if (!layout.flush && layout.stand) {
+    assert(layout.stand.z - layout.stand.d / 2 >= layout.faceZ - 0.02, `${id} stand back`);
+    assert(layout.stand.z + layout.stand.d / 2 <= layout.zFront + 0.02, `${id} stand front`);
+    assert(Math.abs(layout.stand.w - 0.5) < 1e-9 && Math.abs(layout.stand.d - 0.5) < 1e-9, `${id} stand is 50 cm`);
   }
 }
 
@@ -143,19 +144,13 @@ const user = computeLayout({ ...PRESET_LIST[0].config, sign: 'user' });
 assert(Math.abs(user.sign.w / user.sign.h - POSTER_ASPECT.user) < 1e-9, 'fair poster keeps the photo ratio');
 assert(Math.abs(computeLayout(PRESET_LIST[0].config).sign.w / SIGN.h - POSTER_ASPECT.partner) < 1e-9, 'partner poster keeps its photo ratio');
 
-const acrylic = computeLayout(PRESET_LIST[0].config);
-const slot = acrylic.column.panels.hardware;
-assert(slot.style === 'acrylic', 'default hardware is the acrylic plate');
-assert(Math.abs(slot.w - (SPEC.module - 0.12)) < 1e-9, 'acrylic plate fills the column');
+const drawing = computeLayout(PRESET_LIST[0].config);
+const dogs = drawing.column.panels.dogs;
+assert(dogs && Math.abs(dogs.w - 0.7) < 1e-9 && Math.abs(dogs.h - 0.7) < 1e-9, 'dog photo is 70 cm square');
+assert(dogs.y - dogs.h / 2 > SPEC.shelfH + 0.18, 'photo sits above the acrylic stand');
+assert(dogs.y + dogs.h / 2 <= SPEC.height - SPEC.headerH + 0.01, 'photo stays under the header');
 const printed = computeLayout({ ...PRESET_LIST[0].config, plate: 'print' });
-const sheet = printed.column.panels.hardware;
-const plaque = printed.column.panels.plaque;
-assert(sheet.style === 'print', 'print hardware style');
-assert(Math.abs(sheet.w - slot.w) < 1e-9 && Math.abs(sheet.h - slot.h) < 1e-9, 'print fills the same slot as the acrylic plate');
-assert(Math.abs(sheet.w - plaque.w) < 1e-9, 'print width matches the plaque');
-assert(Math.abs(sheet.x - slot.x) < 1e-9 && Math.abs(sheet.y - slot.y) < 1e-9, 'print is centered in the slot');
-assert(sheet.y - sheet.h / 2 > plaque.y + plaque.h / 2, 'print stays above the plaque');
-assert(sheet.y + sheet.h / 2 <= acrylic.contentTop + 1e-9, 'print stays under the header');
+assert(Math.abs(printed.column.panels.dogs.w - dogs.w) < 1e-9, 'old plate choice does not resize the photo');
 const kept = decodeConfig(encodeConfig({ ...PRESET_LIST[0].config, plate: 'print', sign: 'user' }));
 assert(kept && kept.plate === 'print' && kept.sign === 'user', 'plate roundtrip');
 const { plate: _plate, ...legacy } = PRESET_LIST[0].config;

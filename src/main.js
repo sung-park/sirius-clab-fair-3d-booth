@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createBooth } from './booth.js';
 import { createAnnotations } from './annotations.js';
 import { createMaterials, applyFinish } from './materials.js';
-import { buildTextures, composeHardwarePrint } from './textures.js';
+import { buildTextures } from './textures.js';
 import { createConferenceRoom } from './room.js';
 import { mountUI } from './ui.js';
 import {
@@ -124,7 +124,7 @@ const mats = createMaterials();
 let headerTexture = null;
 let partnerTexture = null;
 let userTexture = null;
-let hardwareTexture = null;
+let dogsTexture = null;
 let booth = null;
 let anim = null;
 let currentView = 'hero';
@@ -147,7 +147,11 @@ function discard(root) {
   const textures = root.userData.textures;
   root.traverse((obj) => {
     if (obj.geometry) obj.geometry.dispose();
-    if (obj.userData.disposeMat) obj.userData.disposeMat.dispose();
+    if (obj.userData.disposeMat) {
+      const mat = obj.userData.disposeMat;
+      if (mat.userData?.ownsMap && mat.map) mat.map.dispose();
+      mat.dispose();
+    }
     if (obj.element?.parentNode) obj.element.remove();
   });
   textures?.dispose();
@@ -172,19 +176,7 @@ function rebuild() {
   const tex = buildTextures(layout, renderer.capabilities.getMaxAnisotropy());
   tex.header = headerTexture;
   tex.sign = layout.sign?.design === 'user' ? userTexture : partnerTexture;
-  if (state.plate === 'print' && hardwareTexture?.image && layout.column?.panels.hardware) {
-    const printTex = composeHardwarePrint(
-      hardwareTexture.image,
-      layout.column.panels.hardware,
-      renderer.capabilities.getMaxAnisotropy(),
-    );
-    const prevDispose = tex.dispose;
-    tex.dispose = () => {
-      printTex.dispose();
-      prevDispose();
-    };
-    tex.hardware = printTex;
-  }
+  tex.dogs = dogsTexture;
   booth = createBooth(state, layout, mats, tex);
   booth.add(createAnnotations(layout, state));
   scene.add(booth);
@@ -515,12 +507,22 @@ async function boot() {
     toast('Fair행사 포스터 이미지를 불러오지 못했습니다.');
   }
   try {
-    const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/hardware-print.png`);
+    const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/tracker-dogs.png`);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = anisotropy;
-    hardwareTexture = texture;
+    const aspect = texture.image.width / texture.image.height;
+    if (aspect > 1) {
+      const repeatX = 1 / aspect;
+      texture.repeat.set(repeatX, 1);
+      texture.offset.set((1 - repeatX) / 2, 0);
+    } else if (aspect < 1) {
+      const repeatY = aspect;
+      texture.repeat.set(1, repeatY);
+      texture.offset.set(0, (1 - repeatY) / 2);
+    }
+    dogsTexture = texture;
   } catch {
-    toast('하드웨어 인쇄물 이미지를 불러오지 못했습니다.');
+    toast('반려견 사진을 불러오지 못했습니다.');
   }
   document.querySelector('#drawing-img').src = `${import.meta.env.BASE_URL}brand/drawing.png`;
   rebuild();

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { SIGN, SPEC, SAMPLE_DX } from './layout.js';
+import { SIGN, SPEC } from './layout.js';
+import { buildStand } from './stand.js';
 
 function rounded(w, h, d, radius = 0.004, segments = 3) {
   const limit = Math.min(w, h, d) / 2 - 0.0005;
@@ -31,7 +32,7 @@ export function createBooth(cfg, layout, mats, tex) {
   root.add(buildHeader(add, layout, mats, tex));
   if (layout.tv) root.add(buildScreen(add, layout.tv, mats, tex.tv));
   buildPrints(add, layout, mats, tex);
-  if (layout.tray) buildTray(add, layout.tray, mats);
+  if (layout.stand) root.add(buildStand(add, layout.stand));
   if (layout.totem) root.add(buildTotem(add, layout.totem, mats, tex));
   if (layout.sign) root.add(buildSign(add, layout.sign, mats, tex));
   root.add(buildPerson(add, cfg, layout, mats));
@@ -228,22 +229,19 @@ function buildPrints(add, layout, mats, tex) {
   for (const panel of panels) {
     const map = tex[panel.key];
     if (!map) continue;
-    if (panel.key === 'hardware' && panel.style === 'print') {
-      // Pasted sheet. panel.z is the wall face, so the back sits 2 mm proud
-      // and does not z-fight. No lip and no shadow gap: a gap that clears
-      // normalBias (0.025) would float the sheet off the wall.
-      const sheet = 0.003;
-      const lift = 0.002;
+    if (panel.key === 'dogs') {
+      const sheet = 0.004;
+      const lift = 0.006;
       const paper = mats.paper.clone();
-      paper.color.set('#f6f7f5');
-      paper.roughness = 0.82;
+      paper.color.set('#f4f1ea');
+      paper.roughness = 0.8;
       add(
         rounded(panel.w, panel.h, sheet, 0.001, 2),
         paper,
         panel.x,
         panel.y,
         panel.z + lift + sheet / 2,
-        { name: 'hardware-print', cast: false, disposeMat: paper },
+        { name: 'dog-photo', cast: false, disposeMat: paper },
       );
       const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
       add(
@@ -252,35 +250,7 @@ function buildPrints(add, layout, mats, tex) {
         panel.x,
         panel.y,
         panel.z + lift + sheet + 0.001,
-        { name: 'hardware-print-face', cast: false, receive: false, disposeMat: material },
-      );
-      continue;
-    }
-    if (panel.key === 'hardware') {
-      // Shallow plate, not a case. The gap has to clear the shadow bias
-      // or the contact shadow is eaten and the plate still looks glued on.
-      const depth = 0.042;
-      const gap = 0.036;
-      const lip = 0.014;
-      const plateMat = mats.acrylic.clone();
-      plateMat.color.set('#d7dfdb');
-      plateMat.roughness = 0.46;
-      add(
-        rounded(panel.w + lip * 2, panel.h + lip * 2, depth, 0.004, 3),
-        plateMat,
-        panel.x,
-        panel.y,
-        panel.z + gap + depth / 2,
-        { name: 'hardware-plate', disposeMat: plateMat },
-      );
-      const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
-      add(
-        new THREE.PlaneGeometry(panel.w, panel.h),
-        material,
-        panel.x,
-        panel.y,
-        panel.z + gap + depth + 0.001,
-        { cast: false, receive: false, disposeMat: material },
+        { name: 'dog-photo-face', cast: false, receive: false, disposeMat: material },
       );
       continue;
     }
@@ -304,43 +274,6 @@ function buildPrints(add, layout, mats, tex) {
       { cast: false, disposeMat: material },
     );
   }
-}
-
-function buildTray(add, tray, mats) {
-  add(rounded(tray.w, tray.h, tray.d, 0.002, 2), mats.tray, tray.x, tray.y + tray.h / 2, tray.z, { name: 'tray' });
-  const y = tray.y + tray.h;
-  addWearable(add, mats, tray.x + SAMPLE_DX[0], y, tray.z, false);
-  addWearable(add, mats, tray.x + SAMPLE_DX[1], y, tray.z, true);
-}
-
-function addWearable(add, mats, x, y, z, alt) {
-  const puckR = alt ? 0.046 : 0.028;
-  const puckH = alt ? 0.022 : 0.012;
-  const bandR = alt ? 0.09 : 0.068;
-  const tube = alt ? 0.01 : 0.006;
-  add(
-    new THREE.TorusGeometry(bandR, tube, 12, 28, Math.PI * 1.2),
-    alt ? mats.bandAlt : mats.band,
-    x,
-    y + tube,
-    z,
-    { rot: [Math.PI / 2, 0, 0.5] },
-  );
-  add(
-    new THREE.CylinderGeometry(puckR, puckR * 0.96, puckH, 28),
-    alt ? mats.deviceAlt : mats.device,
-    x,
-    y + tube * 2 + puckH / 2 + 0.002,
-    z,
-  );
-  add(
-    new THREE.SphereGeometry(0.0045, 12, 8),
-    alt ? mats.ledOff : mats.led,
-    x,
-    y + tube * 2 + puckH + 0.006,
-    z + puckR * 0.25,
-    { cast: false },
-  );
 }
 
 function buildTotem(add, totem, mats, tex) {

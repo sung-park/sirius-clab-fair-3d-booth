@@ -62,10 +62,9 @@ export function createAnnotations(layout, cfg) {
   const frames = [];
   if (layout.tv) frames.push([layout.tv, '55″ TV (터치형 위치)']);
   const names = {
-    hardware: '트래커 하드웨어',
+    dogs: '반려견 착용 70 cm',
     feature: '특성 기능 3줄',
     results: '과제 성과 출력물',
-    plaque: '시료 비교 전시',
     product: '특성 기능',
     vision: '과제명 · 비전',
   };

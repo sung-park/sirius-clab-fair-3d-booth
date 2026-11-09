@@ -76,8 +76,7 @@ body:not(.ready) #viewport::after {
   color: var(--cream);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
-#sign-block, #plate-block { order: 2; }
-#plate-block .k { margin-top: 12px; }
+#sign-block { order: 2; }
 #panel-more { order: 1; min-height: 0; }
 #panel-more[open] { flex: 1; display: flex; flex-direction: column; }
 #panel-more > summary {
@@ -315,9 +314,8 @@ body.bare #topbar, body.bare #panel, body.bare #toolbar, body.bare #toast { disp
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
-  #sign-block, #plate-block { order: 1; }
+  #sign-block { order: 1; }
   #sign-block .k { margin-top: 2px; }
-  #plate-block .k { margin-top: 10px; }
   .seg button { min-height: 44px; font-size: 15px; }
   .downloads a { min-height: 44px; font-size: 14px; }
   .actions { order: 2; }
@@ -334,5 +332,5 @@ body.bare #topbar, body.bare #panel, body.bare #toolbar, body.bare #toast { disp
   #panel { max-height: 36vh; padding-top: 6px; padding-bottom: 6px; }
   .hint-touch { display: none; }
   .actions { margin-top: 6px; }
-  #sign-block .k, #plate-block .k { margin-top: 0; }
+  #sign-block .k { margin-top: 0; }
 }
