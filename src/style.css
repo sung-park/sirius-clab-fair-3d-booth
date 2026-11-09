@@ -136,6 +136,24 @@ body:not(.ready) #viewport::after {
 }
 .seg button.on { background: var(--cream); color: #14221c; font-weight: 650; }
 
+.downloads { margin-top: 8px; }
+.downloads .k { margin: 0 0 6px; }
+.downloads div { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.downloads a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 7px 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cream);
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+.downloads a:focus-visible { outline: 2px solid rgba(28, 125, 94, 0.8); outline-offset: 2px; }
+
 .check {
   display: flex;
   gap: 8px;
@@ -301,6 +319,7 @@ body.bare #topbar, body.bare #panel, body.bare #toolbar, body.bare #toast { disp
   #sign-block .k { margin-top: 2px; }
   #plate-block .k { margin-top: 10px; }
   .seg button { min-height: 44px; font-size: 15px; }
+  .downloads a { min-height: 44px; font-size: 14px; }
   .actions { order: 2; }
   #panel-more { order: 3; }
   .hint-desk { display: none; }

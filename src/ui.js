@@ -26,6 +26,12 @@ export function mountUI(api) {
     api.setNote(event.target.value.slice(0, 140));
   });
   document.querySelector('#copy-link').addEventListener('click', () => api.copyLink());
+  document.querySelectorAll('#sign-downloads a').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      api.download(link.href, link.getAttribute('download'));
+    });
+  });
   document.querySelector('#reset').addEventListener('click', () => api.applyPreset('drawing'));
 
   function refresh(state, activeView) {

@@ -375,6 +375,24 @@ const ui = mountUI({
     syncHash();
     ui.refresh(state, currentView);
   },
+  async download(href, filename) {
+    try {
+      const response = await fetch(href);
+      if (!response.ok) throw new Error(String(response.status));
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'sign.jpg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      toast('입간판 이미지를 내려받았습니다.');
+    } catch {
+      toast('입간판 이미지를 내려받지 못했습니다.');
+    }
+  },
   async copyLink() {
     syncHash();
     const url = location.href;
