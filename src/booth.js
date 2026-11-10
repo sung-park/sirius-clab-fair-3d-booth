@@ -230,26 +230,18 @@ function buildPrints(add, layout, mats, tex) {
     const map = tex[panel.key];
     if (!map) continue;
     if (panel.key === 'dogs') {
-      const sheet = 0.004;
-      const lift = 0.006;
-      const paper = mats.paper.clone();
-      paper.color.set('#f4f1ea');
-      paper.roughness = 0.8;
-      add(
-        rounded(panel.w, panel.h, sheet, 0.001, 2),
-        paper,
-        panel.x,
-        panel.y,
-        panel.z + lift + sheet / 2,
-        { name: 'dog-photo', cast: false, disposeMat: paper },
-      );
-      const material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
+      const material = new THREE.MeshBasicMaterial({
+        map,
+        toneMapped: false,
+        transparent: true,
+        depthWrite: false,
+      });
       add(
         new THREE.PlaneGeometry(panel.w, panel.h),
         material,
         panel.x,
         panel.y,
-        panel.z + lift + sheet + 0.001,
+        panel.z + 0.004,
         { name: 'dog-photo-face', cast: false, receive: false, disposeMat: material },
       );
       continue;
