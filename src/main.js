@@ -510,6 +510,10 @@ async function boot() {
     const texture = await loader.loadAsync(`${import.meta.env.BASE_URL}brand/tracker-dogs.png`);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = anisotropy;
+    // Mipmaps soften the headline. Sample the photo directly so the type stays sharp.
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
     const aspect = texture.image.width / texture.image.height;
     if (aspect > 1) {
       const repeatX = 1 / aspect;
